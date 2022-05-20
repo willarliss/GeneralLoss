@@ -1,3 +1,3 @@
-# SKMinimize
+# GeneralLoss
 
-Scikit-Learn compatible framework for minimizing custom loss functions.
+General framework for minimizing custom loss functions. Scikit-Learn compatible.
