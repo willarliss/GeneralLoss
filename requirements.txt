@@ -1,0 +1,4 @@
+numpy==1.22.3
+pylint==2.13.9
+scikit-learn==1.1.0
+scipy==1.8.0
