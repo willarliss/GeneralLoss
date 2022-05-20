@@ -1,0 +1,19 @@
+[MESSAGES CONTROL]
+
+disable=invalid-name,
+        unused-argument,
+        attribute-defined-outside-init,
+        no-member,
+        too-few-public-methods,
+        #missing-function-docstring,
+        #missing-class-docstring,
+        #missing-module-docstring,
+
+[DESIGN]
+
+max-args=10
+max-attributes=15
+
+[Basic]
+
+good-names=X,y,b,w,
