@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from .types import Array_Nx1
 
+
 EPS = np.finfo(float).eps ** 0.5
 METHODS = ('BFGS', 'L-BFGS-B', 'SLSQP')
 

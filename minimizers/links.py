@@ -39,6 +39,7 @@ def sigmoid_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
 
     return np.clip(y_hat, EPS, 1-EPS)
 
+
 def softmax_link(X: Array_NxP, B: Array_PxK) -> Array_NxK:
 
     with warnings.catch_warnings():
