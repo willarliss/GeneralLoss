@@ -60,7 +60,7 @@ class CustomLossMinimizer(BaseEstimatorABC):
     def _init_minimizer(self, n_iter=None):
 
         if self.solver.upper() not in METHODS:
-            raise ValueError
+            raise ValueError(f'Unsuported solver: {self.solver}')
         if n_iter is None:
             n_iter = self.max_iter
         if self.options is None:
@@ -101,7 +101,7 @@ class CustomLossMinimizer(BaseEstimatorABC):
             return mse_loss
 
         if not callable(self.loss_fn):
-            raise ValueError
+            raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
 
         return self.loss_fn
 
@@ -114,7 +114,7 @@ class CustomLossMinimizer(BaseEstimatorABC):
             return linear_link
 
         if not callable(self.link_fn):
-            raise ValueError
+            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
 
         return self.link_fn
 
@@ -167,7 +167,10 @@ class CustomLossMinimizer(BaseEstimatorABC):
     def predict(self, X: Array_NxP):
 
         if not hasattr(self, 'coef_'):
-            raise NotFittedError
+            raise NotFittedError(
+                'Estimator not fitted. '
+                'Call `fit` with appropriate arguments before calling `predict`'
+            )
 
         X = self._validate_data(X, reset=False)
         link_function = self.get_link_fn()
@@ -229,7 +232,10 @@ class CustomLossClassifier(BaseEstimatorABC):
 
     def set_estimator_type(self, etype):
 
-        warnings.warn('bad', category=RuntimeWarning)
+        warnings.warn(
+            'estimator type cannot be set directly. Automatically set to `classifier`',
+            category=RuntimeWarning,
+        )
 
         return super().set_estimator_type('classifier')
 
@@ -243,7 +249,7 @@ class CustomLossClassifier(BaseEstimatorABC):
     def _init_minimizer(self, n_iter=None):
 
         if self.solver.upper() not in METHODS:
-            raise ValueError
+            raise ValueError(f'Unsuported solver: {self.solver}')
         if n_iter is None:
             n_iter = self.max_iter
         if self.options is None:
@@ -281,7 +287,7 @@ class CustomLossClassifier(BaseEstimatorABC):
             return cce_loss
 
         if not callable(self.loss_fn):
-            raise ValueError
+            raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
 
         return self.loss_fn
 
@@ -290,7 +296,7 @@ class CustomLossClassifier(BaseEstimatorABC):
         if self.link_fn is None:
             link = softmax_link
         elif not callable(self.link_fn):
-            raise ValueError
+            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
         else:
             link = self.link_fn
 
@@ -314,7 +320,7 @@ class CustomLossClassifier(BaseEstimatorABC):
         if not hasattr(self, 'coef_'):
             X, y = self._validate_data(X, y, reset=True)
             if classes is None:
-                raise ValueError('classes must be passed on the first call to partial_fit.')
+                raise ValueError('classes must be passed on the first call to `partial_fit`')
             self.le_ = OneHotLabelEncoder(classes)
             self.coef_ = self._init_params()
         else:
@@ -357,7 +363,10 @@ class CustomLossClassifier(BaseEstimatorABC):
     def predict(self, X: Array_NxP):
 
         if not hasattr(self, 'coef_'):
-            raise NotFittedError
+            raise NotFittedError(
+                'Estimator not fitted. '
+                'Call `fit` with appropriate arguments before calling `predict`'
+            )
 
         X = self._validate_data(X, reset=False)
         link_function = self.get_link_fn()
@@ -419,7 +428,10 @@ class CustomLossRegressor(BaseEstimatorABC):
 
     def set_estimator_type(self, etype):
 
-        warnings.warn('bad', category=RuntimeWarning)
+        warnings.warn(
+            'estimator type cannot be set directly. Automatically set to `regressor`',
+            category=RuntimeWarning,
+        )
 
         return super().set_estimator_type('regressor')
 
@@ -433,7 +445,7 @@ class CustomLossRegressor(BaseEstimatorABC):
     def _init_minimizer(self, n_iter=None):
 
         if self.solver.upper() not in METHODS:
-            raise ValueError
+            raise ValueError(f'Unsuported solver: {self.solver}')
         if n_iter is None:
             n_iter = self.max_iter
         if self.options is None:
@@ -471,7 +483,7 @@ class CustomLossRegressor(BaseEstimatorABC):
             return multi_mse_loss
 
         if not callable(self.loss_fn):
-            raise ValueError
+            raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
 
         return self.loss_fn
 
@@ -480,7 +492,7 @@ class CustomLossRegressor(BaseEstimatorABC):
         if self.link_fn is None:
             link = multi_linear_link
         elif not callable(self.link_fn):
-            raise ValueError
+            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
         else:
             link = self.link_fn
 
@@ -538,7 +550,10 @@ class CustomLossRegressor(BaseEstimatorABC):
     def predict(self, X: Array_NxP):
 
         if not hasattr(self, 'coef_'):
-            raise NotFittedError
+            raise NotFittedError(
+                'Estimator not fitted. '
+                'Call `fit` with appropriate arguments before calling `predict`'
+            )
 
         X = self._validate_data(X, reset=False)
         link_function = self.get_link_fn()

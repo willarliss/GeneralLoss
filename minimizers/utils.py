@@ -20,7 +20,7 @@ def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
     else:
         w = np.asarray(w)
     if not (np.all(w>=0) and w.shape[0]==y.shape[0]):
-        raise ValueError
+        raise ValueError('Weights must be positive and have the same length as the input data')
 
     return w
 
@@ -128,7 +128,10 @@ class BaseEstimatorABC(BaseEstimator, ABC):
     def set_estimator_type(self, etype):
 
         if etype not in ('classifier', 'regressor'):
-            raise ValueError
+            raise ValueError(
+                'Only estimator types `classifier` and `regressor` are supported.'
+                f' Not {etype}'
+            )
 
         self._estimator_type = etype
 
@@ -145,7 +148,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
     def set_check_params(self, **check_params):
 
         if 'multi_output' in check_params:
-            raise ValueError
+            raise ValueError('`multi_output` cannot be set directly')
 
         self._check_params = check_params.copy()
 

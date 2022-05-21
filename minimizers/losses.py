@@ -26,3 +26,11 @@ def cce_loss(Y: Array_NxK, Y_hat: Array_NxK) -> Array_Nx1:
     Y_hat = np.clip(Y_hat, EPS, 1-EPS)
 
     return -np.log((Y*Y_hat).max(1))
+
+
+def hinge_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
+
+    zeros = np.zeros_like(y)
+    margin = 1 - (y*y_hat)
+
+    return np.c_[zeros, margin].max(1)
