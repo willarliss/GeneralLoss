@@ -9,6 +9,9 @@ from .types import Array_NxP, Array_1xP, Array_PxK, Array_Nx1, Array_NxK
 
 
 def link_fn_multioutput_reshape(outputs: int) -> Callable:
+    """Wrapper for link functions to reshape a flat coefficient array into proper 2d-array
+    for multioutput prediction.
+    """
 
     outputs = int(outputs)
 
