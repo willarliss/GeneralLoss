@@ -1,10 +1,10 @@
 [MESSAGES CONTROL]
 
-disable=invalid-name,
-        unused-argument,
+disable=unused-argument,
         attribute-defined-outside-init,
         no-member,
         too-few-public-methods,
+        useless-super-delegation,
         #missing-function-docstring,
         #missing-class-docstring,
         #missing-module-docstring,
@@ -14,6 +14,19 @@ disable=invalid-name,
 max-args=10
 max-attributes=15
 
+[SIMILARITIES]
+
+min-similarity-lines=1000
+
 [Basic]
 
-good-names=X,y,b,w,
+good-names=Array_PxK,
+           Array_NxK,
+           Array_NxP,
+           Array_1xP,
+           Array_Nx1,
+           val_X,
+           Y, Y_hat, y, yt,
+           B, b,
+           X, x0,
+           w,
