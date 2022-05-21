@@ -1,56 +1,40 @@
-import warnings
 from abc import ABC
+from typing import Callable
+from functools import wraps
 
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+from .types import Array_Nx1
 
 EPS = np.finfo(float).eps ** 0.5
+METHODS = ('BFGS', 'L-BFGS-B', 'SLSQP')
 
 
-class Array_NxP(np.ndarray):
-    """Numpy ndarray of shape (N,P). Train/test data."""
-class Array_1xP(np.ndarray):
-    """Numpy ndarray of shape (1,P) or (P,). Model parameters."""
-class Array_Nx1(np.ndarray):
-    """Numpy ndarray of shape (N,1) or (N,). Train/test labels or instance weights."""
+def link_fn_multioutput_reshape(outputs: int) -> Callable:
 
+    outputs = int(outputs)
 
-def linear_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
-    return X.dot(b)
+    def wrapper(link_fn):
+        @wraps(link_fn)
+        def link_fn_wrapped(X, B):
+            return link_fn(X, B.reshape(X.shape[1], outputs))
+        return link_fn_wrapped
 
-def sigmoid_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', category=RuntimeWarning)
-        y_hat = 1 / (1+np.exp(-linear_link(X, b)))
-    return np.clip(y_hat, EPS, 1-EPS)
+    return wrapper
 
-def mse_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
-    return 0.5 * (y-y_hat)**2
-
-def bce_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
-    entropy = (y)*np.log(y_hat) + (1-y)*np.log(1-y_hat)
-    return -entropy
-
-def zero_penalty(b: Array_Nx1) -> float:
-    return 0.
-
-def l1_penalty(b: Array_Nx1, alpha: float = 0.1) -> float:
-    return np.linalg.norm(b, 1) * alpha
-
-def l2_penalty(b: Array_Nx1, alpha: float = 0.1) -> float:
-    return np.linalg.norm(b, 2) * alpha
-
-def elasticnet_penalty(b: Array_Nx1, gamma: float = 0.5, alpha: float = 0.1) -> float:
-    return ((gamma)*l1_penalty(b) + (1-gamma)*l2_penalty(b)) * alpha
 
 def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
+
     if w is None:
         w = np.full(y.shape[0], 1/y.shape[0])
     else:
         w = np.asarray(w)
     if not (np.all(w>=0) and w.shape[0]==y.shape[0]):
         raise ValueError
+
     return w
 
 
@@ -157,16 +141,11 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
     def get_params(self, deep=True):
 
-        if deep:
-            return super().get_params(deep=False).copy()
-
         return super().get_params(deep=False)
 
     def set_params(self, **params):
 
-        super().set_params(**params)
-
-        return self
+        return super().set_params(**params)
 
     def set_check_params(self, **check_params):
 
@@ -183,3 +162,35 @@ class BaseEstimatorABC(BaseEstimator, ABC):
             return self._check_params().copy()
 
         return self._check_params()
+
+
+class OneHotLabelEncoder(BaseEstimator):
+
+    def __init__(self, classes):
+
+        self.classes = classes
+        self.n_classes_  = len(self.classes)
+        self.le_ = LabelEncoder()
+        self.ohe_ = OneHotEncoder(sparse=False)
+
+        self.le_.classes_ = self.classes
+        self.ohe_.categories_ = [np.arange(len(self.classes))]
+        self.ohe_.drop_idx_ = None
+
+    def fit(self, *args, **kwargs):
+        return self
+
+    def partial_fit(self, *args, **kwargs):
+        return self
+
+    def transform(self, y, *args, **kwargs):
+
+        yt = self.le_.transform(y).reshape(-1,1)
+
+        return self.ohe_.transform(yt)
+
+    def inverse_transform(self, yt, *args, **kwargs):
+
+        y = self.ohe_.inverse_transform(yt).squeeze()
+
+        return self.le_.inverse_transform(y)
