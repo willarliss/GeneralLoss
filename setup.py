@@ -1,9 +1,15 @@
+import os
 from setuptools import setup
 
-with open('requirements.txt', 'r') as infile:
+REQS = './requirements/requirements.txt'
+
+with open(REQS, 'r') as infile:
     requirements = infile.read().split('\n')
 
 if __name__ == '__main__':
+
+    os.system('python3 -m pip install -U pip setuptools')
+    os.system(f'pip3 install -r {REQS}')
 
     setup(
         name='Minimizers',
