@@ -9,6 +9,11 @@ def mse_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
     return 0.5 * (y-y_hat)**2
 
 
+def multi_mse_loss(Y: Array_NxK, Y_hat: Array_NxK) -> Array_Nx1:
+
+    return ((Y-Y_hat)**2).sum(1)
+
+
 def bce_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
 
     entropy = (y)*np.log(y_hat) + (1-y)*np.log(1-y_hat)

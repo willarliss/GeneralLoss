@@ -1,29 +1,16 @@
+import warnings
 from abc import ABC
-from typing import Callable
-from functools import wraps
 
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
+from sklearn.utils import DataConversionWarning
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from .types import Array_Nx1
 
 EPS = np.finfo(float).eps ** 0.5
 METHODS = ('BFGS', 'L-BFGS-B', 'SLSQP')
-
-
-def link_fn_multioutput_reshape(outputs: int) -> Callable:
-
-    outputs = int(outputs)
-
-    def wrapper(link_fn):
-        @wraps(link_fn)
-        def link_fn_wrapped(X, B):
-            return link_fn(X, B.reshape(X.shape[1], outputs))
-        return link_fn_wrapped
-
-    return wrapper
 
 
 def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
@@ -105,6 +92,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
                        **check_params):
 
         check_params.update(self._check_params)
+        multi_output = check_params.get('multi_output', False)
 
         out = super()._validate_data(
             X=X,
@@ -120,13 +108,20 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         if val_X and val_y:
             if self.fit_intercept:
                 out = np.c_[np.ones(out[0].shape[0]), out[0]], out[1]
+            if multi_output and (out[1].ndim == 1):
+                out = out[0], out[1].reshape(-1,1)
+            if reset:
+                self.n_outputs_ = 1 if not multi_output else out[1].shape[1]
 
         elif val_X and (not val_y):
             if self.fit_intercept:
                 out = np.c_[np.ones(out.shape[0]), out]
 
         elif (not val_X) and val_y:
-            pass
+            if multi_output and (out[1].ndim == 1):
+                out = out.reshape(-1,1)
+            if reset:
+                self.n_outputs_ = 1 if not multi_output else out.shape[1]
 
         return out
 
@@ -178,19 +173,29 @@ class OneHotLabelEncoder(BaseEstimator):
         self.ohe_.drop_idx_ = None
 
     def fit(self, *args, **kwargs):
+
         return self
 
     def partial_fit(self, *args, **kwargs):
+
         return self
 
     def transform(self, y, *args, **kwargs):
 
-        yt = self.le_.transform(y).reshape(-1,1)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=DataConversionWarning)
+            yt = self.le_.transform(y).reshape(-1,1)
 
-        return self.ohe_.transform(yt)
+        yt = self.ohe_.transform(yt)
+
+        return yt
 
     def inverse_transform(self, yt, *args, **kwargs):
 
         y = self.ohe_.inverse_transform(yt).squeeze()
 
-        return self.le_.inverse_transform(y)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=DataConversionWarning)
+            y = self.le_.inverse_transform(y)
+
+        return y
