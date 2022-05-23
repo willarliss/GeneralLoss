@@ -7,7 +7,7 @@ from sklearn.base import BaseEstimator
 from sklearn.utils import DataConversionWarning
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from .types import Array_Nx1
+from .types import Array_Nx1, Array
 
 
 EPS = np.finfo(float).eps ** 0.5
@@ -126,7 +126,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
         return out
 
-    def set_estimator_type(self, etype):
+    def set_estimator_type(self, etype: str):
 
         if etype not in ('classifier', 'regressor'):
             raise ValueError(
@@ -138,7 +138,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
         return self
 
-    def get_params(self, deep=True):
+    def get_params(self, deep: bool = True) -> dict:
 
         return super().get_params(deep=False)
 
@@ -155,12 +155,26 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
         return self
 
-    def get_check_params(self, deep=True):
+    def get_check_params(self, deep: bool = True) -> dict:
 
         if deep:
             return self._check_params().copy()
 
         return self._check_params()
+
+    def fit(self, X: Array, y: Array,
+            sample_weight: Array = None, **kwargs) -> Array:
+
+        raise NotImplementedError
+
+    def partial_fit(self, X: Array, y: Array,
+                    sample_weight: Array = None, **kwargs) -> Array:
+
+        raise NotImplementedError
+
+    def predict(self, X: Array, **kwargs) -> Array:
+
+        raise NotImplementedError
 
 
 class OneHotLabelEncoder(BaseEstimator):
