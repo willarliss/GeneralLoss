@@ -122,12 +122,13 @@ class CustomLossMinimizer(BaseEstimatorABC):
 
         penalty = penalty_functions(self.penalty)
 
-        if penalty.__name__ == 'elasticnet_penalty':
+        if isinstance(self.penalty, str) and self.penalty == 'elasticnet':
             return partial(penalty, gamma=self.l1_ratio)
 
         return penalty
 
-    def partial_fit(self, X: Array_NxP, y: Array_NxK, sample_weight: Array_Nx1 = None):
+    def partial_fit(self, X: Array_NxP, y: Array_NxK,
+                    sample_weight: Array_Nx1 = None, **kwargs):
 
         if not hasattr(self, 'coef_'):
             X, y = self._validate_data(X, y, reset=True)
@@ -309,7 +310,7 @@ class CustomLossClassifier(BaseEstimatorABC):
 
         penalty = penalty_functions(self.penalty)
 
-        if penalty.__name__ == 'elasticnet_penalty':
+        if isinstance(self.penalty, str) and self.penalty == 'elasticnet':
             return partial(penalty, gamma=self.l1_ratio)
 
         return penalty
@@ -505,7 +506,7 @@ class CustomLossRegressor(BaseEstimatorABC):
 
         penalty = penalty_functions(self.penalty)
 
-        if penalty.__name__ == 'elasticnet_penalty':
+        if isinstance(self.penalty, str) and self.penalty == 'elasticnet':
             return partial(penalty, gamma=self.l1_ratio)
 
         return penalty

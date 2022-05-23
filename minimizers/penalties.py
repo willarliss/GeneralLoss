@@ -25,26 +25,21 @@ def elasticnet_penalty(b: Union[Array_Nx1, Array_NxK], gamma: float = 0.5) -> fl
     return (gamma)*l1_penalty(b) + (1-gamma)*l2_penalty(b)
 
 
-def frobenius_penalty(B: Array_NxK) -> float:
+def penalty_functions(func: str) -> Callable:
 
-    return norm(B, 'fro')
-
-
-def penalty_functions(name: str) -> Callable:
-
-    if isinstance(name, str) and name == 'none':
+    if isinstance(func, str) and func == 'none':
         return zero_penalty
 
-    if isinstance(name, str) and name == 'l1':
+    if isinstance(func, str) and func == 'l1':
         return l1_penalty
 
-    if isinstance(name, str) and name == 'l2':
+    if isinstance(func, str) and func == 'l2':
         return l2_penalty
 
-    if isinstance(name, str) and name == 'elasticnet':
+    if isinstance(func, str) and func == 'elasticnet':
         return elasticnet_penalty
 
-    if isinstance(name, str) and name == 'frobenius':
-        return frobenius_penalty
+    if callable(func):
+        return func
 
-    raise ValueError(f'Unknown penalty function: {name}')
+    raise ValueError(f'Unknown penalty function: {func}')
