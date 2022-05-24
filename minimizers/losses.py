@@ -55,7 +55,7 @@ def mae_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
     return 1 - y*y_hat - (1-y)*(1-y_hat)
 
 
-def categorical_mae_loss(Y: Array_NxK, Y_hat: Array_NxK) -> Array_Nx1:
+def cmae_loss(Y: Array_NxK, Y_hat: Array_NxK) -> Array_Nx1:
     """Categorical mean absolute error loss for multiple classification.
     """
 
