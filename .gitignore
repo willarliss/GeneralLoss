@@ -3,5 +3,5 @@ __pycache__/
 *.ipynb
 !demo.ipynb
 /dist/
-/Minimizers.egg-info/
+/*.egg-info/
 /build/

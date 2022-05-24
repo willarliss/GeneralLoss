@@ -63,6 +63,8 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         self.random_state = random_state
         self.options = options
 
+        self.set_multi_output(False)
+
     def _init_params(self):
 
         rng = np.random.default_rng(self.random_state)
