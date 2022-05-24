@@ -31,55 +31,58 @@ pass
    - A dictionary of options to pass to solver. 'maxiter' and 'disp' are already included.
 ### attributes
  - coef_
+   - Coefficient fitted to input data features.
  - _estimator_type
+   - Type of estimator the instance is ('classifier' or 'regressor').
  - _multi_output
+   - Whether the estimator supports multi-output prediction.
  - _check_params
+   - Dictionary of parameters to use for validating input data.
 ### methods
 ```
 set_estimator_type(etype)
 ```
- - pass
+ - Set type of estimator the instance should be. Can be either 'classifier' or 'regressor'.
 ```
 set_multi_output(multi)
 ```
- - pass
+ - Set whether the estimator should support multi-output prediction.
 ```
 set_params(**params)
 ```
- - pass
+ - Set parameters of the estimator.
 ```
 get_params(deep=True)
 ```
- - pass
+ - Get parameters of the estimator. If deep=True, returns deep copy of parameter dictionary. Else, returns shallow copy.
 ```
 set_check_params(**check_params)
 ```
- - pass
+ - Set parameters used for validating input data.
 ```
 get_check_params(deep=True)
 ```
- - pass
+ - Set parameters used for validating input data. If deep=True, returns deep copy of parameter dictionary. Else, returns shallow copy.
 ```
 get_loss_fn()
 ```
- - pass
+ - Returns loss function used by the estimator. In training, the loss function is combined with the penalty function and is aggregated by sample weights.
 ```
 get_link_fn()
 ```
- - pass
+ - Returns link function used by the estimator.
 ```
 get_reg_fn()
 ```
- - pass
+ - Returns penalty/regularization function used by the estimator. In training, the penalty function is combined with the loss function and is multiplied by the strength parameter alpha.
 ```
 partial_fit(X, y, sample_weight=None, **kwargs)
 ```
- - pass
+ - Perform one training pass on the data. X should be a NxP array of observation data. y should be a Nx1 array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations.
 ```
 fit(X, y, sample_weights=None)
 ```
- - pass
-```
+ - Perform training on the data until convergence (or max_iter is reached). X should be a NxP array of observation data. y should be a Nx1 array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations.```
 predict(X)
 ```
- - pass
+ - Use the link function to make predictions on the input data. X should be a NxP array of input/observation data.
