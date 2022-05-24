@@ -35,7 +35,7 @@ pass
  - _multi_output
  - _check_params
 ### methods
-``
+```
 set_estimator_type(etype)
 ```
  - pass
