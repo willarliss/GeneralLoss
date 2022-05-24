@@ -31,7 +31,7 @@ pass
    - A dictionary of options to pass to solver. 'maxiter' and 'disp' are already included.
 ### Attributes
  - coef_
-   - Coefficient fitted to input data features.
+   - Coefficient vector fitted to input data features.
  - _estimator_type
    - Type of estimator the instance is ('classifier' or 'regressor').
  - _multi_output
@@ -121,7 +121,7 @@ pass
    - A dictionary of options to pass to solver. 'maxiter' and 'disp' are already included.
 ### Attributes
  - coef_
-   - Coefficient fitted to input data features.
+   - Coefficient matrix fitted to input data features.
  - _estimator_type
    - Type of estimator the instance is ('classifier' or 'regressor').
  - _multi_output
@@ -150,9 +150,9 @@ get_loss_fn()
 ```
  - Returns loss function used by the estimator. In training, the loss function is combined with the penalty function and is aggregated by sample weights.
 ```
-get_link_fn()
+get_link_fn(wrap=True)
 ```
- - Returns link function used by the estimator.
+ - Returns link function used by the estimator. If wrap is True, return link function wrapped in multioutput coefficient reshape decorator.
 ```
 get_reg_fn()
 ```
