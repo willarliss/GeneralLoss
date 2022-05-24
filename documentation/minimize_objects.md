@@ -39,7 +39,7 @@ pass
 set_estimator_type(etype)
 ```
  - pass
-``
+```
 set_multi_output(multi)
 ```
  - pass
