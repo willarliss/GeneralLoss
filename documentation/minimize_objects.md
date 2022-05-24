@@ -2,9 +2,9 @@
 ```
 minimizers.minimize.GeneralLossMinimizer(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
 ```
-**Description**
+### Description
 pass
-**Parameters**
+### Parameters
  - loss_fn: Callable, default=None
    - Loss function to optimize during training. Should accept a Nx1 array of targets and an Nx1 array of predictions. Should return a Nx1 array of losses. If not specified, defaults to binary cross-entropy for _estimator_type='classifier' and mean squared error for _estimator_type='regressor'.
  - link_fn: Callable, default=None
@@ -29,12 +29,12 @@ pass
    - Seed for randomly initializing coefficients.
  - options: dict, default=None
    - A dictionary of options to pass to solver. 'maxiter' and 'disp' are already included.
-**attributes**
+### attributes
  - coef_
  - _estimator_type
  - _multi_output
  - _check_params
-**methods**
+### methods
 '''
 set_estimator_type(etype)
 '''
