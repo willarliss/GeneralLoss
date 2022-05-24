@@ -35,47 +35,51 @@ pass
  - _multi_output
  - _check_params
 ### methods
-'''
+``
 set_estimator_type(etype)
-'''
- - pass
-```
-get_params
 ```
  - pass
-```
-set_params
+``
+set_multi_output(multi)
 ```
  - pass
 ```
-set_check_params
+```
+set_params(**params)
+```
+ - pass
+get_params(deep=True)
 ```
  - pass
 ```
-get_check_params
+set_check_params(**check_params)
 ```
  - pass
 ```
-get_loss_fn
+get_check_params(deep=True)
 ```
  - pass
 ```
-get_link_fn
+get_loss_fn()
 ```
  - pass
 ```
-get_reg_fn
+get_link_fn()
 ```
  - pass
 ```
-partial_fit
+get_reg_fn()
 ```
  - pass
 ```
-fit
+partial_fit(X, y, sample_weight=None, **kwargs)
 ```
  - pass
 ```
-predict
+fit(X, y, sample_weights=None)
+```
+ - pass
+```
+predict(X)
 ```
  - pass
