@@ -1,3 +1,4 @@
+___
 # `GeneralLossMinimizer`
 ```
 minimizers.minimize.GeneralLossMinimizer(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
@@ -88,6 +89,7 @@ predict(X)
 ```
  - Use the link function to make predictions on the input data. X should be a NxP array of input/observation data.
 
+___
 # `CustomLossRegressor`
 ```
 minimizers.minimize.CustomLossRegressor(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
@@ -170,6 +172,7 @@ predict(X)
 ```
  - Use the link function to make predictions on the input data. X should be a NxP array of input/observation data.
 
+___
 # `CustomLossClassifier`
 ```
 minimizers.minimize.CustomLossClassifier(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
