@@ -1,8 +1,8 @@
-from typing import Union, Callable
+from typing import Union
 
 from numpy.linalg import norm
 
-from .types import Array_Nx1, Array_NxK
+from .typing import Array_Nx1, Array_NxK, PenaltyFunction
 
 
 def zero_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
@@ -25,7 +25,7 @@ def elasticnet_penalty(b: Union[Array_Nx1, Array_NxK], gamma: float = 0.5) -> fl
     return (gamma)*l1_penalty(b) + (1-gamma)*l2_penalty(b)
 
 
-def penalty_functions(func: str) -> Callable:
+def penalty_functions(func: str) -> PenaltyFunction:
 
     if isinstance(func, str) and func == 'none':
         return zero_penalty
