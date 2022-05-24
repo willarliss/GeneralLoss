@@ -4,7 +4,7 @@ ___
 minimizers.minimize.GeneralLossMinimizer(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
 ```
 ### Description
-pass
+This class is a general minimizer for custom-defined loss functions. Users can specify a custom loss function, custom link function, and custom penalty function. Minimization is performed with Scipy and the API is compatible with Scikit-Learn. The class is designed to support both classification and regression.
 ### Parameters
  - loss_fn: Callable, default=None
    - Loss function to optimize during training. Should accept a Nx1 array of targets and an Nx1 array of predictions. Should return a Nx1 array of losses. If not specified, defaults to binary cross-entropy for _estimator_type='classifier' and mean squared error for _estimator_type='regressor'.
@@ -95,7 +95,7 @@ ___
 minimizers.minimize.CustomLossRegressor(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
 ```
 ### Description
-pass
+This class is a minimizer for custom-defined regression loss functions. Users can specify a custom loss function, custom link function, and custom penalty function. Minimization is performed with Scipy and the API is compatible with Scikit-Learn. Outputs/targets will always be assumed to be multi-dimmensional (i.e. a two axis NumPy array).
 ### Parameters
  - loss_fn: Callable, default=None
    - Loss function to optimize during training. Should accept a NxK array of targets and an NxK array of predictions. Should return a Nx1 array of losses. If not specified, defaults to multi-output mean squared error.
@@ -178,7 +178,7 @@ ___
 minimizers.minimize.CustomLossClassifier(loss_fn=None, link_fn=None, penalty='none', alpha=0.1, l1_ratio=0.15, solver='bfgs', tol=1e-4, max_iter=1000, verbose=0, fit_intercept=True, random_state=None, options=None)
 ```
 ### Description
-pass
+This class is a minimizer for custom-defined classification loss functions. Users can specify a custom loss function, custom link function, and custom penalty function. Minimization is performed with Scipy and the API is compatible with Scikit-Learn. Outputs/targets are assumed to always be multi-dimmensional. For binary tasks, the outputs will be of shape Nx2. For K-class tasks, the outputs will be of shape NxK.
 ### Parameters
  - loss_fn: Callable, default=None
    - Loss function to optimize during training. Should accept a NxK array of targets and an NxK array of predictions. Should return a Nx1 array of losses. If not specified, defaults to categorical cross-entropy.
