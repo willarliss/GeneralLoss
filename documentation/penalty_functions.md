@@ -37,7 +37,7 @@ L2-norm penalty.
 ___
 # elasticnet
 ```
-minimizers.penalties.elasticnet(b)
+minimizers.penalties.elasticnet(b, gamma=0.5)
 ```
 ### Description
 Elastic-net penalty.
