@@ -1,14 +1,13 @@
 import warnings
-from typing import Callable
 from functools import wraps
 
 import numpy as np
 
 from .utils import EPS
-from .types import Array_NxP, Array_1xP, Array_PxK, Array_Nx1, Array_NxK
+from .typing import Array_NxP, Array_1xP, Array_PxK, Array_Nx1, Array_NxK, LinkFunction
 
 
-def link_fn_multioutput_reshape(outputs: int) -> Callable:
+def link_fn_multioutput_reshape(outputs: int) -> LinkFunction:
     """Wrapper for link functions to reshape a flat coefficient array into proper 2d-array
     for multioutput prediction.
     """

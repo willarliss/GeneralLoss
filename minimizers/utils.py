@@ -1,13 +1,13 @@
 import warnings
-from abc import ABC
+from typing import Union, Callable
 
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
 from sklearn.base import BaseEstimator
 from sklearn.utils import DataConversionWarning
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from .types import Array_Nx1, Array
+from .typing import Array_Nx1, Array_NxK, Array_1xP
 
 
 EPS = np.finfo(float).eps ** 0.5
@@ -29,17 +29,17 @@ def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
 class Minimize:
 
     def __init__(self, *,
-                 args=(),
-                 method=None,
-                 jac=None,
-                 hess=None,
-                 hessp=None,
-                 bounds=None,
-                 constraints=(),
-                 tol=None,
-                 callback=None,
-                 maxiter=None,
-                 disp=False,
+                 args: tuple = (),
+                 method: Union[str, Callable] = None,
+                 jac: Union[Callable, str, bool] = None,
+                 hess: Union[Callable, str, bool] = None,
+                 hessp: Callable = None,
+                 bounds: list = None,
+                 constraints: Union[dict, list] = (),
+                 tol: float = None,
+                 callback: callable = None,
+                 maxiter: int = None,
+                 disp: int = False,
                  **options):
 
         self.args = args
@@ -55,7 +55,7 @@ class Minimize:
         self.options['maxiter'] = maxiter
         self.options['disp'] = disp
 
-    def __call__(self, fun, x0, *, args=None):
+    def __call__(self, fun: Callable, x0: Array_1xP, *, args: tuple = None) -> OptimizeResult:
 
         if args is None:
             args = self.args
@@ -78,108 +78,9 @@ class Minimize:
         return result
 
 
-class BaseEstimatorABC(BaseEstimator, ABC):
-
-    def __init__(self):
-
-        self.set_check_params()
-        self.set_estimator_type('classifier')
-
-    def _validate_data(self,
-                       X='no_validation',
-                       y='no_validation',
-                       reset=True,
-                       validate_separately=False,
-                       **check_params):
-
-        check_params.update(self._check_params)
-        multi_output = check_params.get('multi_output', False)
-
-        out = super()._validate_data(
-            X=X,
-            y=y,
-            reset=reset,
-            validate_separately=validate_separately,
-            **check_params,
-        )
-
-        val_X = not (isinstance(X, str) and X=='no_validation')
-        val_y = not (y is None or isinstance(y, str) and y=='no_validation')
-
-        if val_X and val_y:
-            if self.fit_intercept:
-                out = np.c_[np.ones(out[0].shape[0]), out[0]], out[1]
-            if multi_output and (out[1].ndim == 1):
-                out = out[0], out[1].reshape(-1,1)
-            if reset:
-                self.n_outputs_ = 1 if not multi_output else out[1].shape[1]
-
-        elif val_X and (not val_y):
-            if self.fit_intercept:
-                out = np.c_[np.ones(out.shape[0]), out]
-
-        elif (not val_X) and val_y:
-            if multi_output and (out[1].ndim == 1):
-                out = out.reshape(-1,1)
-            if reset:
-                self.n_outputs_ = 1 if not multi_output else out.shape[1]
-
-        return out
-
-    def set_estimator_type(self, etype: str):
-
-        if etype not in ('classifier', 'regressor'):
-            raise ValueError(
-                'Only estimator types `classifier` and `regressor` are supported.'
-                f' Not {etype}'
-            )
-
-        self._estimator_type = etype
-
-        return self
-
-    def get_params(self, deep: bool = True) -> dict:
-
-        return super().get_params(deep=False)
-
-    def set_params(self, **params):
-
-        return super().set_params(**params)
-
-    def set_check_params(self, **check_params):
-
-        if 'multi_output' in check_params:
-            raise ValueError('`multi_output` cannot be set directly')
-
-        self._check_params = check_params.copy()
-
-        return self
-
-    def get_check_params(self, deep: bool = True) -> dict:
-
-        if deep:
-            return self._check_params().copy()
-
-        return self._check_params()
-
-    def fit(self, X: Array, y: Array,
-            sample_weight: Array = None, **kwargs) -> Array:
-
-        raise NotImplementedError
-
-    def partial_fit(self, X: Array, y: Array,
-                    sample_weight: Array = None, **kwargs) -> Array:
-
-        raise NotImplementedError
-
-    def predict(self, X: Array, **kwargs) -> Array:
-
-        raise NotImplementedError
-
-
 class OneHotLabelEncoder(BaseEstimator):
 
-    def __init__(self, classes):
+    def __init__(self, classes: tuple):
 
         self.classes = classes
         self.n_classes_  = len(self.classes)
@@ -198,7 +99,7 @@ class OneHotLabelEncoder(BaseEstimator):
 
         return self
 
-    def transform(self, y, *args, **kwargs):
+    def transform(self, y: Array_Nx1, *args, **kwargs) -> Array_NxK:
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=DataConversionWarning)
@@ -208,7 +109,7 @@ class OneHotLabelEncoder(BaseEstimator):
 
         return yt
 
-    def inverse_transform(self, yt, *args, **kwargs):
+    def inverse_transform(self, yt: Array_NxK, *args, **kwargs) -> Array_Nx1:
 
         y = self.ohe_.inverse_transform(yt).squeeze()
 

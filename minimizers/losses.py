@@ -1,7 +1,7 @@
 import numpy as np
 
 from .utils import EPS
-from .types import Array_Nx1, Array_NxK
+from .typing import Array_Nx1, Array_NxK
 
 
 def mse_loss(y: Array_Nx1, y_hat: Array_Nx1) -> Array_Nx1:
