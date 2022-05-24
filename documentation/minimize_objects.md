@@ -44,10 +44,10 @@ set_multi_output(multi)
 ```
  - pass
 ```
-```
 set_params(**params)
 ```
  - pass
+```
 get_params(deep=True)
 ```
  - pass
