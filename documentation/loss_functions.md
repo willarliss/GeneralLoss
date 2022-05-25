@@ -5,7 +5,7 @@ minimizers.losses.mse_loss(y, y_hat)
 ```
 ### Description
 Mean squared error loss for single output regression: <br>
-$ \frac{1}{2} (y_i - \hat{y}_i)^2 $
+$ L(y_i, \hat{y}_i) = \frac{1}{2} (y_i - \hat{y}_i)^2 $
 ### Parameters
  - y: A Nx1 array of continuous valued targets.
  - y_hat: A Nx1 array of continuous valued predictions.
@@ -18,7 +18,8 @@ ___
 minimizers.losses.multi_mse_loss(y, y_hat)
 ```
 ### Description
-Mean squared error loss for multi-output regression.
+Mean squared error loss for multi-output regression: <br>
+$ L(y_i, \hat{y}_i) = \sum_{k=1}^{K} (y_{i,k} - \hat{y}_{i,k})^2 $
 ### Parameters
  - y: A NxK array of continuous valued targets.
  - y_hat: A NxK array of continuous valued predictions.
