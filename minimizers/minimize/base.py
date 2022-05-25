@@ -4,6 +4,9 @@ import numpy as np
 from sklearn.base import BaseEstimator
 
 from ..typing import Array
+from ..utils import FilterCheckArgs
+
+filter_check_args = FilterCheckArgs()
 
 
 class BaseEstimatorABC(BaseEstimator, ABC):
@@ -26,9 +29,11 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         val_y = not (y is None or isinstance(y, str) and y=='no_validation')
 
         multi_output = self._multi_output
-        check_params.update(self._check_params)
-        if val_y:
-            check_params.update({'multi_output': multi_output})
+        check_params = filter_check_args(
+            val_X=val_X,
+            val_y=val_y,
+            args={**check_params, **self._check_params, **{'multi_output': multi_output}},
+        )
 
         out = super()._validate_data(
             X=X,
