@@ -4,7 +4,8 @@ ___
 minimizers.losses.mse_loss(y, y_hat)
 ```
 ### Description
-Mean squared error loss for single output regression.
+Mean squared error loss for single output regression: <br>
+$ \frac{1}{2} (y_i - \hat{y}_i)^2 $
 ### Parameters
  - y: A Nx1 array of continuous valued targets.
  - y_hat: A Nx1 array of continuous valued predictions.
