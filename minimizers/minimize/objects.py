@@ -1,3 +1,5 @@
+"""Custom loss minimization objects"""
+
 import warnings
 from typing import Union
 from functools import partial

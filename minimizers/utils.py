@@ -1,3 +1,5 @@
+"""Utility functions for minimizers"""
+
 import warnings
 from typing import Union, Callable
 from inspect import getfullargspec
@@ -5,11 +7,9 @@ from inspect import getfullargspec
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.utils import DataConversionWarning
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_X_y, check_array, _check_y
 
-from .typing import Array_Nx1, Array_NxK, Array_1xP
+from .typing import Array_Nx1, Array_1xP
 
 
 EPS = np.finfo(float).eps ** 0.5
@@ -21,18 +21,18 @@ class Minimize:
     Minimization of scalar function of one or more variables.
 
     Parameters:
-        args: (tuple) Extra arguments passed to the objective function and its derivatives.
-        method: (str, Callable) Type of solver.
-        jac: (Callable, str, bool) Method for computing the gradient vector.
-        hess: (Callable, str, bool) Method for computing the Hessian matrix.
-        hessp: (Callable) Hessian of objective function times an arbitrary vector p.
-        bounds: (list) List of bounds on variables for certain methods.
-        constraints: (dict, list) Constraints to the optimization problem.
-        tol: (float) Tolerance for termination.
-        callback: (Callable) Called after each iteration.
-        maxiter: (int) Maximum number of iterations to perform.
-        disp: (bool) Whether to print convergence messages.
-        options: (**) A dictionary of solver options.
+        args: [tuple] Extra arguments passed to the objective function and its derivatives.
+        method: [str, Callable] Type of solver.
+        jac: [Callable, str, bool] Method for computing the gradient vector.
+        hess: [Callable, str, bool] Method for computing the Hessian matrix.
+        hessp: [Callable] Hessian of objective function times an arbitrary vector p.
+        bounds: [list] List of bounds on variables for certain methods.
+        constraints: [dict, list] Constraints to the optimization problem.
+        tol: [float] Tolerance for termination.
+        callback: [Callable] Called after each iteration.
+        maxiter: [int] Maximum number of iterations to perform.
+        disp: [bool] Whether to print convergence messages.
+        options: [**] A dictionary of solver options.
 
     Attributes:
         args, method, jac, hess, hessp, bounds, constraints, tol, callback, options.
@@ -69,12 +69,12 @@ class Minimize:
         """Call functionality.
 
         Parameters:
-            fun: (Callable) The objective function to be minimized.
-            x0: (ndarray) Array for initial guess.
-            args: (tuple) Arguments to override those passed on __init__.
+            fun: [Callable] The objective function to be minimized.
+            x0: [ndarray] Array for initial guess.
+            args: [tuple] Arguments to override those passed on __init__.
 
         Returns:
-            (OptimizeResult) The optimization result.
+            [OptimizeResult] The optimization result.
 
         Raises:
             None.
@@ -105,12 +105,11 @@ class OneHotLabelEncoder(OneHotEncoder):
     """Wrapper around sklearn.preprocessing.OneHotEncoder.
 
     Parameters:
-        classes: (tuple) The known classes/targets in the training data.
+        classes: [tuple] The known classes/targets in the training data.
 
     Attributes:
         n_classes_: Number of classes derived from classes argumenet.
         classes, OneHotEncoder attributes
-
     """
 
     def __init__(self, classes):
@@ -146,9 +145,9 @@ class FilterCheckArgs:
         None.
 
     Attributes:
-        xy_params: (set) Parameters accepted by sklearn.utils.validation.check_X_y.
-        x_params: (set) Parameters accepted by sklearn.utils.validation.check_array.
-        y_params: (set) Parameters accepted by sklearn.utils.validation._check_y.
+        xy_params: [set] Parameters accepted by sklearn.utils.validation.check_X_y.
+        x_params: [set] Parameters accepted by sklearn.utils.validation.check_array.
+        y_params: [set] Parameters accepted by sklearn.utils.validation._check_y.
     """
 
     def __init__(self):
@@ -168,12 +167,12 @@ class FilterCheckArgs:
         """Call functionality.
 
         Parameters:
-            val_X: (bool) Whether or not `X` is being validated.
-            val_y: (bool) Whether or not `y` is being validated.
-            args: (dict) Keyword arguments passed to `_validate_data`.
+            val_X: [bool] Whether or not `X` is being validated.
+            val_y: [bool] Whether or not `y` is being validated.
+            args: [dict] Keyword arguments passed to `_validate_data`.
 
         Returns:
-            (dict) Filtered keyword arguments passed to `_validate_data`.
+            [dict] Filtered keyword arguments passed to `_validate_data`.
 
         Raises:
             RuntimeWarning if unrecognized keyword arguments are passed.
@@ -200,11 +199,11 @@ def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
     If no weights are passed, weights are set to 1/N for arithmetic averaging.
 
     Parameters:
-        w: (ndarray) Array of obvservation weights.
-        y: (ndarray) Array of training targets.
+        w: [ndarray] Array of obvservation weights.
+        y: [ndarray] Array of training targets.
 
     Returns:
-        (ndarray) Array of obvservation weights.
+        [ndarray] Array of obvservation weights.
 
     Raises:
         ValueError if weights are not all positive and do not match input data length.

@@ -9,7 +9,7 @@ $ \hat{y}_i = X_i b^T $
 ### Parameters
  - X: A (N,P) array of input data.
  - b: A (1,P) or (P,) array of coefficients.
- ### Returns
+### Returns
  - A (N,) array of continuous valued predictions.
 
 ___
@@ -23,7 +23,7 @@ $ \hat{Y}_i = X_i B $
 ### Parameters
  - X: A (N,P) array of input data.
  - B: A (P,N) array of coefficients.
- ### Returns
+### Returns
  - A (N,K) array of continuous valued predictions.
 
 ___
@@ -37,7 +37,7 @@ $ \hat{p}_i = \frac{1}{1+e^{-X_i b^T}} $
 ### Parameters
  - X: A (N,P) array of input data.
  - b: A (1,P) or (P,) array of coefficients.
- ### Returns
+### Returns
  - A (N,) array of probabilisitc predictions.
 
 ___
@@ -51,5 +51,5 @@ $ \hat{P}_i = \frac{e^{X_i B}}{\sum{e^{X_i B}}} $
 ### Parameters
  - X: A (N,P) array of input data.
  - B: A (P,N) array of coefficients.
- ### Returns
+### Returns
  - A (N,K) array of probabilisitc predictions.

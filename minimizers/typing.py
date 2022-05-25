@@ -1,3 +1,5 @@
+"""Type hints for minimizers"""
+
 from typing import Callable, Union
 
 from numpy import ndarray
