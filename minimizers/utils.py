@@ -1,11 +1,13 @@
 import warnings
 from typing import Union, Callable
+from inspect import getfullargspec
 
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 from sklearn.base import BaseEstimator
 from sklearn.utils import DataConversionWarning
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.utils.validation import check_X_y, check_array, _check_y
 
 from .typing import Array_Nx1, Array_NxK, Array_1xP
 
@@ -118,3 +120,33 @@ class OneHotLabelEncoder(BaseEstimator):
             y = self.le_.inverse_transform(y)
 
         return y
+
+
+class FilterCheckArgs:
+
+    def __init__(self):
+
+        ignore = ['X', 'y', 'array']
+
+        spec = getfullargspec(check_X_y)
+        self.xy_params = set(arg for arg in spec.args+spec.kwonlyargs if arg not in ignore)
+
+        spec = getfullargspec(check_array)
+        self.x_params = set(arg for arg in spec.args+spec.kwonlyargs if arg not in ignore)
+
+        spec = getfullargspec(_check_y)
+        self.y_params = set(arg for arg in spec.args+spec.kwonlyargs if arg not in ignore)
+
+    def __call__(self, val_X, val_y, args):
+
+        for arg in args:
+            if arg not in self.xy_params|self.x_params|self.y_params:
+                warnings.warn(f'Unknown argument: {arg}', category=RuntimeWarning)
+
+        if val_X and val_y:
+            return {k:v for k, v in args.items() if k in self.xy_params}
+        if val_X and not val_y:
+            return {k:v for k, v in args.items() if k in self.x_params}
+        if val_X and not val_y:
+            return {k:v for k, v in args.items() if k in self.y_params}
+        return {}
