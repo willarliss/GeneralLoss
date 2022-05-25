@@ -7,10 +7,10 @@ minimizers.links.linear_link(X, b)
 Linear combination of input matrix and coefficient vector: <br>
 $ \hat{y}_i = X_i b^T $
 ### Parameters
- - X: A NxP array of input data.
- - b: A 1xP array of coefficients.
+ - X: A (N,P) array of input data.
+ - b: A (1,P) or (P,) array of coefficients.
  ### Returns
- - A Nx1 array of continuous valued predictions.
+ - A (N,) array of continuous valued predictions.
 
 ___
 # multi_linear_link
@@ -21,10 +21,10 @@ minimizers.links.multi_linear_link(X, B)
 Linear combination of input matrix and coefficient matrix: <br>
 $ \hat{Y}_i = X_i B $
 ### Parameters
- - X: A NxP array of input data.
+ - X: A (N,P) array of input data.
  - B: A PxK array of coefficients.
  ### Returns
- - NxK array of continuous valued predictions.
+ - A (N,K) array of continuous valued predictions.
 
 ___
 # sigmoid_link
@@ -35,10 +35,10 @@ minimizers.links.linear_link(X, b)
 Sigmoid function applied to linear combination of input matrix and coefficient vector: <br>
 $ \hat{p}_i = \frac{1}{1+e^{-X_i b^T}} $
 ### Parameters
- - X: A NxP array of input data.
- - b: A 1xP array of coefficients.
+ - X: A (N,P) array of input data.
+ - b: A (1,P) or (P,) array of coefficients.
  ### Returns
- - A Nx1 array of probabilisitc predictions.
+ - A (N,) array of probabilisitc predictions.
 
 ___
 # softmax_link
@@ -49,7 +49,7 @@ minimizers.links.linear_link(X, B)
 Softmax function applied to linear combination of input matrix and coefficient matrix: <br>
 $ \hat{P}_i = \frac{e^{X_i B}}{\sum{e^{X_i B}}} $
 ### Parameters
- - X: A NxP array of input data.
+ - X: A (N,P) array of input data.
  - B: A PxK array of coefficients.
  ### Returns
- - A NxK array of probabilisitc predictions.
+ - A (N,K) array of probabilisitc predictions.
