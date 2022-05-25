@@ -4,9 +4,9 @@ from inspect import getfullargspec
 
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils import DataConversionWarning
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.utils.validation import check_X_y, check_array, _check_y
 
 from .typing import Array_Nx1, Array_NxK, Array_1xP
@@ -101,61 +101,41 @@ class Minimize:
         return result
 
 
-class OneHotLabelEncoder(TransformerMixin, BaseEstimator):
-    """Wrapper around sklearn.preprocessing.LabelEncoder and sklearn.preprocessing.OneHotEncoder.
+class OneHotLabelEncoder(OneHotEncoder):
+    """Wrapper around sklearn.preprocessing.OneHotEncoder.
 
     Parameters:
         classes: (tuple) The known classes/targets in the training data.
 
     Attributes:
-        classes
         n_classes_: Number of classes derived from classes argumenet.
-        le_: (LabelEncoder) LabelEncoder object.
-        ohe_: (OneHotEncoder) OneHotEncoder object.
+        classes, OneHotEncoder attributes
+
     """
 
-    def __init__(self, classes: tuple):
+    def __init__(self, classes):
+
+        super().__init__(
+            categories=[classes],
+            drop=None,
+            sparse=False,
+        )
 
         self.classes = classes
-        self.n_classes_  = len(self.classes)
-        self.le_ = LabelEncoder()
-        self.ohe_ = OneHotEncoder(sparse=False)
+        self.n_classes_ = len(classes)
+        self.categories_ = [classes]
+        self.n_features_in_ = 1
+        self.drop_idx_ = None
+        self.infrequent_categories_ = None
+        self.feature_names_in_ = None
 
-        self.le_.classes_ = self.classes
-        self.ohe_.categories_ = [np.arange(len(self.classes))]
-        self.ohe_.drop_idx_ = None
+    def _validate_data(self, *args, **kwargs):
 
-    def fit(self, *args, **kwargs):
-        """Does nothing.
-        """
+        out = super().validate_data(*args, **kwargs)
 
-        return self
-
-    def partial_fit(self, *args, **kwargs):
-        """Does nothing.
-        """
-
-        return self
-
-    def transform(self, y: Array_Nx1, *args, **kwargs) -> Array_NxK:
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=DataConversionWarning)
-            yt = self.le_.transform(y).reshape(-1,1)
-
-        yt = self.ohe_.transform(yt)
-
-        return yt
-
-    def inverse_transform(self, yt: Array_NxK, *args, **kwargs) -> Array_Nx1:
-
-        y = self.ohe_.inverse_transform(yt).squeeze()
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=DataConversionWarning)
-            y = self.le_.inverse_transform(y)
-
-        return y
+        if out.ndim == 1:
+            return out.reshape(-1,1)
+        return out
 
 
 class FilterCheckArgs:
