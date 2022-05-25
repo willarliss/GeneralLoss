@@ -4,9 +4,7 @@ import numpy as np
 from sklearn.base import BaseEstimator
 
 from ..typing import Array
-from ..utils import FilterCheckArgs
-
-filter_check_args = FilterCheckArgs()
+from ..utils import filter_check_args
 
 
 class BaseEstimatorABC(BaseEstimator, ABC):

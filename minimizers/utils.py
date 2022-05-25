@@ -16,18 +16,6 @@ EPS = np.finfo(float).eps ** 0.5
 METHODS = ('BFGS', 'L-BFGS-B', 'SLSQP')
 
 
-def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
-
-    if w is None:
-        w = np.full(y.shape[0], 1/y.shape[0])
-    else:
-        w = np.asarray(w)
-    if not (np.all(w>=0) and w.shape[0]==y.shape[0]):
-        raise ValueError('Weights must be positive and have the same length as the input data')
-
-    return w
-
-
 class Minimize:
 
     def __init__(self, *,
@@ -150,3 +138,17 @@ class FilterCheckArgs:
         if val_X and not val_y:
             return {k:v for k, v in args.items() if k in self.y_params}
         return {}
+
+filter_check_args = FilterCheckArgs()
+
+
+def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
+
+    if w is None:
+        w = np.full(y.shape[0], 1/y.shape[0])
+    else:
+        w = np.asarray(w)
+    if not (np.all(w>=0) and w.shape[0]==y.shape[0]):
+        raise ValueError('Weights must be positive and have the same length as the input data')
+
+    return w

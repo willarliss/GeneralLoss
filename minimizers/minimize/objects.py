@@ -65,6 +65,15 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         self.set_multi_output(False)
 
+        if self.alpha <= 0:
+            raise ValueError(f'`alpha` must be greater than 0. Not {self.alpha}')
+        if not 0.<=self.l1_ratio<=1.:
+            raise ValueError(f'`l1_ratio` must be in [0,1]. Not {self.l1_ratio}')
+        if tol < 0.:
+            raise ValueError(f'`tol` must be greater than or equal to 0. Not {self.tol}')
+        if self.max_iter <= 0:
+            raise ValueError(f'`max_iter` must be greater than 0. Not {self.max_iter}')
+
     def _init_params(self):
 
         rng = np.random.default_rng(self.random_state)
