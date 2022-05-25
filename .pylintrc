@@ -6,9 +6,9 @@ disable=unused-argument,
         too-few-public-methods,
         useless-super-delegation,
         arguments-differ,
-        #missing-function-docstring,
-        #missing-class-docstring,
-        #missing-module-docstring,
+        missing-function-docstring,
+        missing-class-docstring,
+        missing-module-docstring,
 
 [DESIGN]
 
