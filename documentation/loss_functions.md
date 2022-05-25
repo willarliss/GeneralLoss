@@ -5,7 +5,7 @@ minimizers.losses.mse_loss(y, y_hat)
 ```
 ### Description
 Mean squared error loss for single output regression: <br>
-$ L(y_i, \hat{y}_i) = \frac{1}{2} (y_i - \hat{y}_i)^2 $
+$ L(y_i, \hat{y}_i) = \frac{1}{2} \left( y_i - \hat{y}_i \right)^2, \,\,\, y_i \in \mathbb{R}^1 $
 ### Parameters
  - y: A Nx1 array of continuous valued targets.
  - y_hat: A Nx1 array of continuous valued predictions.
@@ -19,7 +19,7 @@ minimizers.losses.multi_mse_loss(y, y_hat)
 ```
 ### Description
 Mean squared error loss for multi-output regression: <br>
-$ L(y_i, \hat{y}_i) = \sum_{k=1}^{K}{(y_{i,k} - \hat{y}_{i,k})^2} $
+$ L(y_i, \hat{y}_i) = \sum_{k=1}^{K}{(y_{i,k} - \hat{y}_{i,k})^2}, \,\,\, y_i \in \mathbb{R}^K $
 ### Parameters
  - y: A NxK array of continuous valued targets.
  - y_hat: A NxK array of continuous valued predictions.
@@ -32,7 +32,8 @@ ___
 minimizers.losses.bce_loss(y, y_hat)
 ```
 ### Description
-Binary cross entropy loss for binary classification.
+Binary cross entropy loss for binary classification: <br>
+$ L(y_i, \hat{p}_i) = - y_i \ln{(\hat{p}_i)} - (1-y_i) \ln{(1-\hat{p}_i)}, \,\,\, y_i \in \{0,1\} $
 ### Parameters
  - y: A Nx1 array of binary targets.
  - y_hat: A Nx1 array of probabilisitc predictions.
@@ -45,7 +46,8 @@ ___
 minimizers.losses.cce_loss(y, y_hat)
 ```
 ### Description
-Categorical cross entropy loss for multiple classification.
+Categorical cross entropy loss for multiple classification: <br>
+$ L(y_i, \hat{p}_i) = -\sum_{k=1}^{K}{y_{i,k} \ln{(\hat{p}_{i,k})}}, \,\,\, y_{i,k} \in \{0,1\} $
 ### Parameters
  - y: A NxK array of categorical targets.
  - y_hat: A NxK array of probabilisitc predictions.
@@ -58,7 +60,8 @@ ___
 minimizers.losses.hinge_loss(y, y_hat)
 ```
 ### Description
-Hinge loss for binary classification.
+Hinge loss for binary classification: <br>
+$ L(y_i, \hat{y}_i) = \text{min}(0, \, 1 - y_i \hat{y}_i), \,\,\, y_i \in \{-1,1\} $
 ### Parameters
  - y: A Nx1 array of binary targets.
  - y_hat: A Nx1 array of margin predictions.
@@ -71,7 +74,8 @@ ___
 minimizers.losses.mae_loss(y, y_hat)
 ```
 ### Description
-Mean absolute error loss for binary classification.
+Mean absolute error loss for binary classification: <br>
+$ L(y_i, \hat{p}_i) = 1 - y_i \hat{p}_i - (1-y_i) (1-\hat{p}_i, \,\,\, y_i \in \{0,1\} $
 ### Parameters
  - y: A Nx1 array of binary targets.
  - y_hat: A Nx1 array of probabilistic predictions.
@@ -84,7 +88,8 @@ ___
 minimizers.losses.cmae_loss(y, y_hat)
 ```
 ### Description
-Categorical mean absolute error loss for multiple classification.
+Categorical mean absolute error loss for multiple classification: <br>
+$ L(y_i, \hat{p}_i) = 1-\sum_{k=1}^{K}{y_{i,k} \hat{p}_{i,k}}, \,\,\, y_{i,k} \in \{0,1\} $
 ### Parameters
  - y: A NxK array of categorical targets.
  - y_hat: A NxK array of probabilistic targets.
