@@ -69,7 +69,16 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         return out
 
     def set_estimator_type(self, etype: str):
-        """Set the `_estimator_type` attribute manually. Should be `regressor` or `classifier`.
+        """Set type of estimator the instance should be. Can be 'classifier' or 'regressor'.
+
+        Parameters:
+            etype: [str] Estimator type.
+
+        Returns:
+            [self] Itself.
+
+        Raises:
+            None.
         """
 
         if etype not in ('classifier', 'regressor'):
@@ -83,7 +92,16 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         return self
 
     def set_multi_output(self, multi: bool):
-        """Set the `_multi_output` attribute manually. Should be boolean.
+        """Set whether the estimator should support multi-output prediction.
+
+        Parameters:
+            multi: [bool] Multi-output status.
+
+        Returns:
+            [self] Itself.
+
+        Raises:
+            None.
         """
 
         self._multi_output = bool(multi)
@@ -91,19 +109,64 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         return self
 
     def get_params(self, deep: bool = True) -> dict:
-        """Get parameters passed to `__init__`.
+        """Get parameters of the estimator.
+
+        Parameters:
+            deep: [bool] Return deep copy of parameter dictionary if true, shallow copy else.
+
+        Returns:
+            [dict] Parameter dictionary.
+
+        Raises:
+            None.
         """
 
         return super().get_params(deep=False)
 
     def set_params(self, **params):
-        """Set `__init__` parameters .
+        """Set parameters of the estimator.
+
+        Parameters:
+            params: [**] Estimator parameters.
+
+        Returns:
+            [self] Itself.
+
+        Raises:
+            None.
         """
 
         return super().set_params(**params)
 
+    def get_check_params(self, deep: bool = True) -> dict:
+        """Get parameters used for validating input data.
+
+        Parameters:
+            deep: [bool] Return deep copy of parameter dictionary if true, shallow copy else.
+
+        Returns:
+            [dict] Parameter (check_params) dictionary.
+
+        Raises:
+            None.
+        """
+
+        if deep:
+            return self._check_params().copy()
+
+        return self._check_params()
+
     def set_check_params(self, **check_params):
-        """Set the `check_parameters` used in the `_validate_data` call.
+        """Set parameters used for validating input data.
+
+        Parameters:
+            params: [**] Estimator (check_params) parameters.
+
+        Returns:
+            [self] Itself.
+
+        Raises:
+            ValueError if multi_output is specified.
         """
 
         if 'multi_output' in check_params:
@@ -113,24 +176,14 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
         return self
 
-    def get_check_params(self, deep: bool = True) -> dict:
-        """Get the `check_parameters` used in the `_validate_data` call.
-        """
-
-        if deep:
-            return self._check_params().copy()
-
-        return self._check_params()
-
-
-    def fit(self, X: Array, y: Array, sample_weight: Array = None, **kwargs) -> Array:
+    def partial_fit(self, X: Array, y: Array, sample_weight: Array = None, **kwargs) -> Array:
         """Perform one training pass on input data `X` and targets `y` applying observation
         weights `sample_weight`.
         """
 
         raise NotImplementedError
 
-    def partial_fit(self, X: Array, y: Array, sample_weight: Array = None, **kwargs) -> Array:
+    def fit(self, X: Array, y: Array, sample_weight: Array = None, **kwargs) -> Array:
         """Perform training on input data `X` and targets `y` applying observation
         weights `sample_weight` until convergence.
         """
