@@ -285,7 +285,7 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
 
         y_hat = super().predict(X)
 
-        if y_hat.shape[1] == 1:
+        if y.ndim==2 and y_hat.shape[1]==1:
             return y_hat.flatten()
         return y_hat
 
@@ -402,9 +402,9 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
         y_hat = super().predict(X)
         y_hat = self.le_.inverse_transform(
-            np.where(y_hat.max(1).reshape(-1,1)==y_hat, 1, 0)
+            y_hat==np.where(y_hat.max(1).reshape(-1,1), 1, 0)
         )
 
-        if y_hat.shape[1] == 1:
+        if y.ndim==2 and y_hat.shape[1]==1:
             return y_hat.flatten()
         return y_hat
