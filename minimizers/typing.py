@@ -30,8 +30,6 @@ class Array_Nx1(Array):
     """
 
 
-NoneType = type(None)
-
 LossFunction = Callable[
     [
         Union[Array_Nx1, Array_NxK],
