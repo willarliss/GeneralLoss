@@ -5,6 +5,7 @@ from typing import Union
 from functools import partial
 
 import numpy as np
+from scipy import optimize
 from sklearn.exceptions import NotFittedError
 from sklearn.base import RegressorMixin, ClassifierMixin
 
@@ -30,7 +31,6 @@ from ..utils import (
     EPS,
     METHODS,
     check_weights,
-    Minimize,
     OneHotLabelEncoder,
 )
 
@@ -88,26 +88,6 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return rng.normal(size=shape)
 
-    def _init_minimizer(self, n_iter=None):
-
-        if self.solver.upper() not in METHODS:
-            raise ValueError(f'Unsuported solver: {self.solver}')
-        if n_iter is None:
-            n_iter = self.max_iter
-        if self.options is None:
-            options = {}
-        else:
-            options = self.options.copy()
-        options['eps'] = EPS
-
-        return Minimize(
-            method=self.solver,
-            tol=self.tol,
-            maxiter=n_iter,
-            disp=self.verbose,
-            **options,
-        )
-
     def _define_loss_fn(self, X, y, weights):
 
         link_function = self.get_link_fn()
@@ -126,11 +106,25 @@ class GeneralLossMinimizer(BaseEstimatorABC):
     def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
 
         loss_function = self._define_loss_fn(X, y, sample_weight)
-        minimizer = self._init_minimizer(n_iter)
 
-        result = minimizer(
+        if self.solver.upper() not in METHODS:
+            raise ValueError(f'Unsuported solver: {self.solver}')
+        if self.options is None:
+            options = {}
+        else:
+            options = self.options.copy()
+        options.update({
+            'eps': EPS,
+            'maxiter': n_iter,
+            'disp': self.verbose,
+        })
+
+        result = optimize.minimize(
             fun=loss_function,
             x0=coef_0,
+            options=options,
+            method=self.solver,
+            tol=self.tol,
         )
 
         coef_1 = result.x
