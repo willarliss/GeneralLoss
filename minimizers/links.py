@@ -45,7 +45,7 @@ def linear_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Array_Nx1:
         b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
 
     Returns:
-        [ndarray] A (N,) array of continuous valued predictions.
+        [ndarray] A (N,) or (N,K) array of continuous valued predictions.
 
     Raises:
         None.
