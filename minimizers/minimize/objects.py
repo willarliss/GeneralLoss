@@ -273,7 +273,7 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
     def set_multi_output(self, multi: bool):
 
         warnings.warn(
-            '`multi_output` cannot be set directly. Automatically set to True',
+            '`_multi_output` cannot be set directly. Automatically set to True',
             category=RuntimeWarning,
         )
 
@@ -282,7 +282,7 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
     def set_estimator_type(self, etype: str):
 
         warnings.warn(
-            'estimator type cannot be set directly. Automatically set to `regressor`',
+            "`_estimator_type` cannot be set directly. Automatically set to 'regressor'",
             category=RuntimeWarning,
         )
 
@@ -333,7 +333,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
     def set_multi_output(self, multi: bool):
 
         warnings.warn(
-            '`multi_output` cannot be set directly. Automatically set to True',
+            '`_multi_output` cannot be set directly. Automatically set to True',
             category=RuntimeWarning,
         )
 
@@ -342,7 +342,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
     def set_estimator_type(self, etype: str):
 
         warnings.warn(
-            'estimator type cannot be set directly. Automatically set to `classifier`',
+            "`_estimator_type` cannot be set directly. Automatically set to 'classifier'",
             category=RuntimeWarning,
         )
 
@@ -363,7 +363,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
         self.coef_ = self._partial_fit(
             X=X,
-            y=y,
+            y=self.le_.transform(y),
             coef_0=self.coef_.copy(),
             sample_weight=sample_weight,
             n_iter=1,
@@ -378,11 +378,9 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         self.n_outputs_ = self.le_.n_classes_
         self.coef_ = self._init_params()
 
-        y = self.le_.transform(y)
-
         self.coef_ = self._partial_fit(
             X=X,
-            y=y,
+            y=self.le_.transform(y),
             coef_0=self.coef_.copy(),
             sample_weight=sample_weight,
             n_iter=self.max_iter,
