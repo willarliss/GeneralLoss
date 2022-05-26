@@ -4,14 +4,14 @@ from typing import Union, Callable
 
 from numpy.linalg import norm
 
-from .typing import Array_Nx1, Array_NxK, PenaltyFunction
+from .typing import Array_KxP, Array_1xP, PenaltyFunction
 
 
-def zero_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
+def zero_penalty(b: Union[Array_1xP, Array_KxP]) -> float:
     """No penalty. Defined for API consistency.
 
     Parameters:
-        b: [ndarray] A (1,P) or (P,) or (P,K) array of coefficients.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
 
     Returns:
         [float] The value 0.
@@ -23,11 +23,11 @@ def zero_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
     return 0.
 
 
-def l1_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
+def l1_penalty(b: Union[Array_1xP, Array_KxP]) -> float:
     """L1-norm penalty.
 
     Parameters:
-        b: [ndarray] A (1,P) or (P,) or (P,K) array of coefficients.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
 
     Returns:
         [float] A single float of the computed penalty.
@@ -39,11 +39,11 @@ def l1_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
     return norm(b, 1)
 
 
-def l2_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
+def l2_penalty(b: Union[Array_1xP, Array_KxP]) -> float:
     """L2-norm penalty.
 
     Parameters:
-        b: [ndarray] A (1,P) or (P,) or (P,K) array of coefficients.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
 
     Returns:
         [float] A single float of the computed penalty.
@@ -55,11 +55,11 @@ def l2_penalty(b: Union[Array_Nx1, Array_NxK]) -> float:
     return norm(b, 2)
 
 
-def elasticnet_penalty(b: Union[Array_Nx1, Array_NxK], gamma: float = 0.5) -> float:
+def elasticnet_penalty(b: Union[Array_1xP, Array_KxP], gamma: float = 0.5) -> float:
     """Elastic-net penalty.
 
     Parameters:
-        b: [ndarray] A (1,P) or (P,) or (P,K) array of coefficients.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
         gamma: [float] Elastic-net mixing parameter. Must be between 0 and 1 (inclusive).
 
     Returns:

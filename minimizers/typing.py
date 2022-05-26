@@ -9,8 +9,8 @@ class Array(ndarray):
     """Basic Numpy ndarray.
     """
 
-class Array_PxK(Array):
-    """Numpy ndarray of shape (P,K). Model parameters for multi-output.
+class Array_KxP(Array):
+    """Numpy ndarray of shape (K,P). Model parameters for multi-output.
     """
 
 class Array_NxK(Array):
@@ -41,14 +41,14 @@ LossFunction = Callable[
 LinkFunction = Callable[
     [
         Array_NxP,
-        Union[Array_1xP, Array_PxK]
+        Union[Array_1xP, Array_KxP]
     ],
     Union[Array_Nx1, Array_NxK],
 ]
 
 PenaltyFunction = Callable[
     [
-        Union[Array_PxK, Array_1xP],
+        Union[Array_1xP, Array_KxP],
     ],
     float,
 ]

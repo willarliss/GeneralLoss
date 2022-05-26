@@ -34,7 +34,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         check_params = filter_check_args(
             val_X=val_X,
             val_y=val_y,
-            args={**check_params, **self._check_params, **{'multi_output': multi_output}},
+            args={**check_params, **self._check_params, 'multi_output': multi_output},
         )
 
         out = super()._validate_data(
@@ -52,10 +52,13 @@ class BaseEstimatorABC(BaseEstimator, ABC):
                 out = out[0], out[1].reshape(-1,1)
             if reset:
                 self.n_outputs_ = 1 if not multi_output else out[1].shape[1]
+                self.n_inputs_ = out[0].shape[1]
 
         elif val_X and (not val_y):
             if self.fit_intercept:
                 out = np.c_[np.ones(out.shape[0]), out]
+            if reset:
+                self.n_inputs_ = out.shape[1]
 
         elif (not val_X) and val_y:
             if multi_output and (out[1].ndim == 1):

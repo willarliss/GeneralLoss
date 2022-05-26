@@ -6,9 +6,9 @@ disable=unused-argument,
         too-few-public-methods,
         useless-super-delegation,
         arguments-differ,
-        #missing-function-docstring,
-        #missing-class-docstring,
-        #missing-module-docstring,
+        missing-function-docstring,
+        missing-class-docstring,
+        missing-module-docstring,
 
 [DESIGN]
 
@@ -21,7 +21,7 @@ min-similarity-lines=1000
 
 [Basic]
 
-good-names=Array_PxK,
+good-names=Array_KxP,
            Array_NxK,
            Array_NxP,
            Array_1xP,

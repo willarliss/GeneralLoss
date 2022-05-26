@@ -1,104 +1,18 @@
 """Utility functions for minimizers"""
 
 import warnings
-from typing import Union, Callable
+from typing import Callable
 from inspect import getfullargspec
 
 import numpy as np
-from scipy.optimize import minimize, OptimizeResult
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.validation import check_X_y, check_array, _check_y
 
-from .typing import Array_Nx1, Array_1xP
+from .typing import Array_Nx1
 
 
 EPS = np.finfo(float).eps ** 0.5
 METHODS = ('BFGS', 'L-BFGS-B', 'SLSQP')
-
-
-class Minimize:
-    """Wrapper for `scipy.optimize.minimize` function. From documentation:
-    Minimization of scalar function of one or more variables.
-
-    Parameters:
-        args: [tuple] Extra arguments passed to the objective function and its derivatives.
-        method: [str, Callable] Type of solver.
-        jac: [Callable, str, bool] Method for computing the gradient vector.
-        hess: [Callable, str, bool] Method for computing the Hessian matrix.
-        hessp: [Callable] Hessian of objective function times an arbitrary vector p.
-        bounds: [list] List of bounds on variables for certain methods.
-        constraints: [dict, list] Constraints to the optimization problem.
-        tol: [float] Tolerance for termination.
-        callback: [Callable] Called after each iteration.
-        maxiter: [int] Maximum number of iterations to perform.
-        disp: [bool] Whether to print convergence messages.
-        options: [**] A dictionary of solver options.
-
-    Attributes:
-        args, method, jac, hess, hessp, bounds, constraints, tol, callback, options.
-    """
-
-    def __init__(self, *,
-                 args: tuple = (),
-                 method: Union[str, Callable] = None,
-                 jac: Union[Callable, str, bool] = None,
-                 hess: Union[Callable, str, bool] = None,
-                 hessp: Callable = None,
-                 bounds: list = None,
-                 constraints: Union[dict, list] = (),
-                 tol: float = None,
-                 callback: Callable = None,
-                 maxiter: int = None,
-                 disp: bool = False,
-                 **options):
-
-        self.args = args
-        self.method = method
-        self.jac = jac
-        self.hess = hess
-        self.hessp = hessp
-        self.bounds = bounds
-        self.constraints = constraints
-        self.tol = tol
-        self.callback = callback
-        self.options = options
-        self.options['maxiter'] = maxiter
-        self.options['disp'] = disp
-
-    def __call__(self, fun: Callable, x0: Array_1xP, *, args: tuple = None) -> OptimizeResult:
-        """Call functionality.
-
-        Parameters:
-            fun: [Callable] The objective function to be minimized.
-            x0: [ndarray] Array for initial guess.
-            args: [tuple] Arguments to override those passed on __init__.
-
-        Returns:
-            [OptimizeResult] The optimization result.
-
-        Raises:
-            None.
-        """
-
-        if args is None:
-            args = self.args
-
-        result = minimize(
-            fun=fun,
-            x0=x0,
-            args=args,
-            method=self.method,
-            jac=self.jac,
-            hess=self.hess,
-            hessp=self.hessp,
-            bounds=self.bounds,
-            constraints=self.constraints,
-            tol=self.tol,
-            callback=self.callback,
-            options=self.options,
-        )
-
-        return result
 
 
 class OneHotLabelEncoder(OneHotEncoder):
@@ -141,7 +55,7 @@ class OneHotLabelEncoder(OneHotEncoder):
         """Does nothing, categories are already known.
         """
 
-        raise NotImplemented
+        return NotImplemented
 
 
 class FilterCheckArgs:

@@ -5,6 +5,7 @@ from typing import Union
 from functools import partial
 
 import numpy as np
+from scipy import optimize
 from sklearn.exceptions import NotFittedError
 from sklearn.base import RegressorMixin, ClassifierMixin
 
@@ -23,14 +24,12 @@ from ..links import (
     linear_link,
     sigmoid_link,
     softmax_link,
-    multi_linear_link,
     link_fn_multioutput_reshape,
 )
 from ..utils import (
     EPS,
     METHODS,
     check_weights,
-    Minimize,
     OneHotLabelEncoder,
 )
 
@@ -82,31 +81,11 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         rng = np.random.default_rng(self.random_state)
 
         if self._multi_output:
-            shape = (self.n_features_in_+int(self.fit_intercept), self.n_outputs_)
+            shape = (self.n_outputs_, self.n_inputs_)
         else:
-            shape = self.n_features_in_ + int(self.fit_intercept)
+            shape = self.n_inputs_
 
         return rng.normal(size=shape)
-
-    def _init_minimizer(self, n_iter=None):
-
-        if self.solver.upper() not in METHODS:
-            raise ValueError(f'Unsuported solver: {self.solver}')
-        if n_iter is None:
-            n_iter = self.max_iter
-        if self.options is None:
-            options = {}
-        else:
-            options = self.options.copy()
-        options['eps'] = EPS
-
-        return Minimize(
-            method=self.solver,
-            tol=self.tol,
-            maxiter=n_iter,
-            disp=self.verbose,
-            **options,
-        )
 
     def _define_loss_fn(self, X, y, weights):
 
@@ -122,6 +101,36 @@ class GeneralLossMinimizer(BaseEstimatorABC):
             return loss.dot(weights) + self.alpha*reg
 
         return loss
+
+    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
+
+        loss_function = self._define_loss_fn(X, y, sample_weight)
+
+        if self.solver.upper() not in METHODS:
+            raise ValueError(f'Unsuported solver: {self.solver}')
+        if self.options is None:
+            options = {}
+        else:
+            options = self.options.copy()
+        options.update({
+            'eps': EPS,
+            'maxiter': n_iter,
+            'disp': self.verbose,
+        })
+
+        result = optimize.minimize(
+            fun=loss_function,
+            x0=coef_0,
+            options=options,
+            method=self.solver,
+            tol=self.tol,
+        )
+
+        coef_1 = result.x
+        if self._multi_output:
+            coef_1 = coef_1.reshape(self.n_outputs_, self.n_inputs_)
+
+        return coef_1
 
     def get_loss_fn(self) -> LossFunction:
 
@@ -140,22 +149,23 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
 
-    def get_link_fn(self) -> LinkFunction:
+    def get_link_fn(self, wrap: bool = True) -> LinkFunction:
 
         if callable(self.link_fn):
-            return self.link_fn
-
-        if self.link_fn is None:
+            func = self.link_fn
+        elif self.link_fn is None:
             if self._estimator_type=='classifier' and self._multi_output:
-                return softmax_link
+                func = softmax_link
             if self._estimator_type=='classifier' and not self._multi_output:
-                return sigmoid_link
-            if self._estimator_type=='regressor' and self._multi_output:
-                return multi_linear_link
-            if self._estimator_type=='regressor' and not self._multi_output:
-                return linear_link
+                func = sigmoid_link
+            if self._estimator_type=='regressor':
+                func = linear_link
+        else:
+            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
 
-        raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
+        if wrap and self._multi_output:
+            return link_fn_multioutput_reshape(self.n_outputs_)(func)
+        return func
 
     def get_reg_fn(self) -> PenaltyFunction:
 
@@ -166,7 +176,8 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return penalty
 
-    def partial_fit(self, X: Array_NxP, y: Array_NxK, sample_weight: Array_Nx1 = None, **kwargs):
+    def partial_fit(self, X: Array_NxP, y: Union[Array_NxK, Array_Nx1],
+                    sample_weight: Array_Nx1 = None, **kwargs):
 
         if not hasattr(self, 'coef_'):
             X, y = self._validate_data(X, y, reset=True)
@@ -174,36 +185,32 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         else:
             X, y = self._validate_data(X, y, reset=False)
 
-        loss_function = self._define_loss_fn(X, y, sample_weight)
-        minimizer = self._init_minimizer(1)
-
-        result = minimizer(
-            fun=loss_function,
-            x0=self.coef_.copy(),
+        self.coef_ = self._partial_fit(
+            X=X,
+            y=y,
+            coef_0=self.coef_.copy(),
+            sample_weight=sample_weight,
+            n_iter=1,
         )
-
-        self.coef_ = result.x
 
         return self
 
-    def fit(self, X: Array_NxP, y: Array_NxK, sample_weight: Array_Nx1 = None):
+    def fit(self, X: Array_NxP, y: Union[Array_NxK, Array_Nx1], sample_weight: Array_Nx1 = None):
 
         X, y = self._validate_data(X, y, reset=True)
         self.coef_ = self._init_params()
 
-        loss_function = self._define_loss_fn(X, y, sample_weight)
-        minimizer = self._init_minimizer(self.max_iter)
-
-        result = minimizer(
-            fun=loss_function,
-            x0=self.coef_.copy(),
+        self.coef_ = self._partial_fit(
+            X=X,
+            y=y,
+            coef_0=self.coef_.copy(),
+            sample_weight=sample_weight,
+            n_iter=self.max_iter,
         )
-
-        self.coef_ = result.x
 
         return self
 
-    def decision_function(self, X: Array_NxP) -> Array_NxK:
+    def decision_function(self, X: Array_NxP) -> Union[Array_NxK, Array_Nx1]:
 
         if not hasattr(self, 'coef_'):
             raise NotFittedError(
@@ -216,7 +223,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return link_function(X, self.coef_)
 
-    def predict(self, X: Array_NxP) -> Array_NxK:
+    def predict(self, X: Array_NxP) -> Union[Array_NxK, Array_Nx1]:
 
         return self.decision_function(X)
 
@@ -257,7 +264,7 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
     def set_multi_output(self, multi: bool):
 
         warnings.warn(
-            '`multi_output` cannot be set directly. Automatically set to True',
+            '`_multi_output` cannot be set directly. Automatically set to True',
             category=RuntimeWarning,
         )
 
@@ -266,26 +273,17 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
     def set_estimator_type(self, etype: str):
 
         warnings.warn(
-            'estimator type cannot be set directly. Automatically set to `regressor`',
+            "`_estimator_type` cannot be set directly. Automatically set to 'regressor'",
             category=RuntimeWarning,
         )
 
         return super().set_estimator_type('regressor')
 
-    def get_link_fn(self, wrap: bool = True) -> LinkFunction:
-
-        func = super().get_link_fn()
-
-        if wrap:
-            return link_fn_multioutput_reshape(self.n_outputs_)(func)
-
-        return func
-
     def predict(self, X: Array_NxP) -> Array_NxK:
 
         y_hat = super().predict(X)
 
-        if y.ndim==2 and y_hat.shape[1]==1:
+        if y_hat.ndim==2 and y_hat.shape[1]==1:
             return y_hat.flatten()
         return y_hat
 
@@ -326,7 +324,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
     def set_multi_output(self, multi: bool):
 
         warnings.warn(
-            '`multi_output` cannot be set directly. Automatically set to True',
+            '`_multi_output` cannot be set directly. Automatically set to True',
             category=RuntimeWarning,
         )
 
@@ -335,20 +333,11 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
     def set_estimator_type(self, etype: str):
 
         warnings.warn(
-            'estimator type cannot be set directly. Automatically set to `classifier`',
+            "`_estimator_type` cannot be set directly. Automatically set to 'classifier'",
             category=RuntimeWarning,
         )
 
         return super().set_estimator_type('classifier')
-
-    def get_link_fn(self, wrap: bool = True) -> LinkFunction:
-
-        func = super().get_link_fn()
-
-        if wrap:
-            return link_fn_multioutput_reshape(self.n_outputs_)(func)
-
-        return func
 
     def partial_fit(self, X: Array_NxP, y: Array_Nx1,
                     sample_weight: Array_Nx1 = None, classes: tuple = None):
@@ -363,17 +352,13 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         else:
             X, y = self._validate_data(X, y, reset=False)
 
-        y = self.le_.transform(y)
-
-        loss_function = self._define_loss_fn(X, y, sample_weight)
-        minimizer = self._init_minimizer(1)
-
-        result = minimizer(
-            fun=loss_function,
-            x0=self.coef_.copy(),
+        self.coef_ = self._partial_fit(
+            X=X,
+            y=self.le_.transform(y),
+            coef_0=self.coef_.copy(),
+            sample_weight=sample_weight,
+            n_iter=1,
         )
-
-        self.coef_ = result.x
 
         return self
 
@@ -384,17 +369,13 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         self.n_outputs_ = self.le_.n_classes_
         self.coef_ = self._init_params()
 
-        y = self.le_.transform(y)
-
-        loss_function = self._define_loss_fn(X, y, sample_weight)
-        minimizer = self._init_minimizer(self.max_iter)
-
-        result = minimizer(
-            fun=loss_function,
-            x0=self.coef_.copy(),
+        self.coef_ = self._partial_fit(
+            X=X,
+            y=self.le_.transform(y),
+            coef_0=self.coef_.copy(),
+            sample_weight=sample_weight,
+            n_iter=self.max_iter,
         )
-
-        self.coef_ = result.x
 
         return self
 
@@ -402,9 +383,9 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
         y_hat = super().predict(X)
         y_hat = self.le_.inverse_transform(
-            y_hat==np.where(y_hat.max(1).reshape(-1,1), 1, 0)
+            np.where(y_hat==y_hat.max(1).reshape(-1,1), 1, 0)
         )
 
-        if y.ndim==2 and y_hat.shape[1]==1:
+        if y_hat.ndim==2 and y_hat.shape[1]==1:
             return y_hat.flatten()
         return y_hat
