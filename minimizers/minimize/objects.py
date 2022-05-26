@@ -350,7 +350,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
         return func
 
-    def partial_fit(self, X: Array_NxP, y: Array_NxK,
+    def partial_fit(self, X: Array_NxP, y: Array_Nx1,
                     sample_weight: Array_Nx1 = None, classes: tuple = None):
 
         if not hasattr(self, 'coef_'):
@@ -377,7 +377,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
         return self
 
-    def fit(self, X: Array_NxP, y: Array_NxK, sample_weight: Array_Nx1 = None):
+    def fit(self, X: Array_NxP, y: Array_Nx1, sample_weight: Array_Nx1 = None):
 
         X, y = self._validate_data(X, y, reset=True)
         self.le_ = OneHotLabelEncoder(np.unique(y))
@@ -398,7 +398,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
         return self
 
-    def predict(self, X: Array_NxP) -> Array_NxK:
+    def predict(self, X: Array_NxP) -> Array_Nx1:
 
         y_hat = super().predict(X)
         y_hat = self.le_.inverse_transform(
