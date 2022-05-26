@@ -1,34 +1,42 @@
+"""Utility functions for minimizers"""
+
 import warnings
 from typing import Union, Callable
 from inspect import getfullargspec
 
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
-from sklearn.base import BaseEstimator
-from sklearn.utils import DataConversionWarning
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.validation import check_X_y, check_array, _check_y
 
-from .typing import Array_Nx1, Array_NxK, Array_1xP
+from .typing import Array_Nx1, Array_1xP
 
 
 EPS = np.finfo(float).eps ** 0.5
 METHODS = ('BFGS', 'L-BFGS-B', 'SLSQP')
 
 
-def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
-
-    if w is None:
-        w = np.full(y.shape[0], 1/y.shape[0])
-    else:
-        w = np.asarray(w)
-    if not (np.all(w>=0) and w.shape[0]==y.shape[0]):
-        raise ValueError('Weights must be positive and have the same length as the input data')
-
-    return w
-
-
 class Minimize:
+    """Wrapper for `scipy.optimize.minimize` function. From documentation:
+    Minimization of scalar function of one or more variables.
+
+    Parameters:
+        args: [tuple] Extra arguments passed to the objective function and its derivatives.
+        method: [str, Callable] Type of solver.
+        jac: [Callable, str, bool] Method for computing the gradient vector.
+        hess: [Callable, str, bool] Method for computing the Hessian matrix.
+        hessp: [Callable] Hessian of objective function times an arbitrary vector p.
+        bounds: [list] List of bounds on variables for certain methods.
+        constraints: [dict, list] Constraints to the optimization problem.
+        tol: [float] Tolerance for termination.
+        callback: [Callable] Called after each iteration.
+        maxiter: [int] Maximum number of iterations to perform.
+        disp: [bool] Whether to print convergence messages.
+        options: [**] A dictionary of solver options.
+
+    Attributes:
+        args, method, jac, hess, hessp, bounds, constraints, tol, callback, options.
+    """
 
     def __init__(self, *,
                  args: tuple = (),
@@ -39,9 +47,9 @@ class Minimize:
                  bounds: list = None,
                  constraints: Union[dict, list] = (),
                  tol: float = None,
-                 callback: callable = None,
+                 callback: Callable = None,
                  maxiter: int = None,
-                 disp: int = False,
+                 disp: bool = False,
                  **options):
 
         self.args = args
@@ -58,6 +66,19 @@ class Minimize:
         self.options['disp'] = disp
 
     def __call__(self, fun: Callable, x0: Array_1xP, *, args: tuple = None) -> OptimizeResult:
+        """Call functionality.
+
+        Parameters:
+            fun: [Callable] The objective function to be minimized.
+            x0: [ndarray] Array for initial guess.
+            args: [tuple] Arguments to override those passed on __init__.
+
+        Returns:
+            [OptimizeResult] The optimization result.
+
+        Raises:
+            None.
+        """
 
         if args is None:
             args = self.args
@@ -80,49 +101,54 @@ class Minimize:
         return result
 
 
-class OneHotLabelEncoder(BaseEstimator):
+class OneHotLabelEncoder(OneHotEncoder):
+    """Wrapper around sklearn.preprocessing.OneHotEncoder.
 
-    def __init__(self, classes: tuple):
+    Parameters:
+        classes: [tuple] The known classes/targets in the training data.
+
+    Attributes:
+        n_classes_: Number of classes derived from classes argumenet.
+        classes, OneHotEncoder attributes
+    """
+
+    def __init__(self, classes):
+
+        super().__init__(
+            categories=[classes],
+            drop=None,
+            sparse=False,
+        )
 
         self.classes = classes
-        self.n_classes_  = len(self.classes)
-        self.le_ = LabelEncoder()
-        self.ohe_ = OneHotEncoder(sparse=False)
+        self.n_classes_ = len(classes)
+        self.categories_ = [classes]
+        self.n_features_in_ = 1
+        self.drop_idx_ = None
+        self.infrequent_categories_ = None
+        self.feature_names_in_ = None
 
-        self.le_.classes_ = self.classes
-        self.ohe_.categories_ = [np.arange(len(self.classes))]
-        self.ohe_.drop_idx_ = None
+    def _validate_data(self, *args, **kwargs):
 
-    def fit(self, *args, **kwargs):
+        out = super().validate_data(*args, **kwargs)
 
-        return self
-
-    def partial_fit(self, *args, **kwargs):
-
-        return self
-
-    def transform(self, y: Array_Nx1, *args, **kwargs) -> Array_NxK:
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=DataConversionWarning)
-            yt = self.le_.transform(y).reshape(-1,1)
-
-        yt = self.ohe_.transform(yt)
-
-        return yt
-
-    def inverse_transform(self, yt: Array_NxK, *args, **kwargs) -> Array_Nx1:
-
-        y = self.ohe_.inverse_transform(yt).squeeze()
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=DataConversionWarning)
-            y = self.le_.inverse_transform(y)
-
-        return y
+        if out.ndim == 1:
+            return out.reshape(-1,1)
+        return out
 
 
 class FilterCheckArgs:
+    """Functionality for filtering out appropriate `check_params` passed to
+    BaseEstimatorABC._validate_data depending on whether `X`, `y`, or both are being validated.
+
+    Parameters:
+        None.
+
+    Attributes:
+        xy_params: [set] Parameters accepted by sklearn.utils.validation.check_X_y.
+        x_params: [set] Parameters accepted by sklearn.utils.validation.check_array.
+        y_params: [set] Parameters accepted by sklearn.utils.validation._check_y.
+    """
 
     def __init__(self):
 
@@ -138,6 +164,19 @@ class FilterCheckArgs:
         self.y_params = set(arg for arg in spec.args+spec.kwonlyargs if arg not in ignore)
 
     def __call__(self, val_X, val_y, args):
+        """Call functionality.
+
+        Parameters:
+            val_X: [bool] Whether or not `X` is being validated.
+            val_y: [bool] Whether or not `y` is being validated.
+            args: [dict] Keyword arguments passed to `_validate_data`.
+
+        Returns:
+            [dict] Filtered keyword arguments passed to `_validate_data`.
+
+        Raises:
+            RuntimeWarning if unrecognized keyword arguments are passed.
+        """
 
         for arg in args:
             if arg not in self.xy_params|self.x_params|self.y_params:
@@ -150,3 +189,31 @@ class FilterCheckArgs:
         if val_X and not val_y:
             return {k:v for k, v in args.items() if k in self.y_params}
         return {}
+
+# Initialize FilterCheckArgs as function
+filter_check_args: Callable = FilterCheckArgs()
+
+
+def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
+    """Validate that the observations weights are all positive and match the input data length.
+    If no weights are passed, weights are set to 1/N for arithmetic averaging.
+
+    Parameters:
+        w: [ndarray] Array of obvservation weights.
+        y: [ndarray] Array of training targets.
+
+    Returns:
+        [ndarray] Array of obvservation weights.
+
+    Raises:
+        ValueError if weights are not all positive and do not match input data length.
+    """
+
+    if w is None:
+        w = np.full(y.shape[0], 1/y.shape[0])
+    else:
+        w = np.asarray(w)
+    if not (np.all(w>=0) and w.shape[0]==y.shape[0]):
+        raise ValueError('Weights must be positive and have the same length as the input data')
+
+    return w

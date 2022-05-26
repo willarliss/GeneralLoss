@@ -1,15 +1,17 @@
+"""Base class for minimizer objects"""
+
 from abc import ABC
 
 import numpy as np
 from sklearn.base import BaseEstimator
 
 from ..typing import Array
-from ..utils import FilterCheckArgs
-
-filter_check_args = FilterCheckArgs()
+from ..utils import filter_check_args
 
 
 class BaseEstimatorABC(BaseEstimator, ABC):
+    """Abstract base class for custom loss estimators.
+    """
 
     def __init__(self):
 
@@ -119,10 +121,21 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
 
     def fit(self, X: Array, y: Array, sample_weight: Array = None, **kwargs) -> Array:
+        """Perform one training pass on input data `X` and targets `y` applying observation
+        weights `sample_weight`.
+        """
+
         raise NotImplementedError
 
     def partial_fit(self, X: Array, y: Array, sample_weight: Array = None, **kwargs) -> Array:
+        """Perform training on input data `X` and targets `y` applying observation
+        weights `sample_weight` until convergence.
+        """
+
         raise NotImplementedError
 
     def predict(self, X: Array, **kwargs) -> Array:
+        """Use link function to make predictions on the input data `X`.
+        """
+
         raise NotImplementedError
