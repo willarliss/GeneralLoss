@@ -34,7 +34,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         check_params = filter_check_args(
             val_X=val_X,
             val_y=val_y,
-            args={**check_params, **self._check_params, **{'multi_output': multi_output}},
+            args={**check_params, **self._check_params, 'multi_output': multi_output},
         )
 
         out = super()._validate_data(
