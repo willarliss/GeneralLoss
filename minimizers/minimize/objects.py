@@ -24,7 +24,6 @@ from ..links import (
     linear_link,
     sigmoid_link,
     softmax_link,
-    multi_linear_link,
     link_fn_multioutput_reshape,
 )
 from ..utils import (
@@ -159,9 +158,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
                 func = softmax_link
             if self._estimator_type=='classifier' and not self._multi_output:
                 func = sigmoid_link
-            if self._estimator_type=='regressor' and self._multi_output:
-                func = multi_linear_link
-            if self._estimator_type=='regressor' and not self._multi_output:
+            if self._estimator_type=='regressor':
                 func = linear_link
         else:
             raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')

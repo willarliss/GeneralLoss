@@ -1,6 +1,7 @@
 """Predefined link functions supported by minimizers"""
 
 import warnings
+from typing import Union
 from functools import wraps
 
 import numpy as np
@@ -36,12 +37,12 @@ def link_fn_multioutput_reshape(outputs: int) -> LinkFunction:
     return wrapper
 
 
-def linear_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
+def linear_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Array_Nx1:
     """Linear combination of input matrix and coefficient vector.
 
     Parameters:
         X: [ndarray] A (N,P) array of input data.
-        b: [ndarray] A (1,P) or (P,) array of coefficients.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
 
     Returns:
         [ndarray] A (N,) array of continuous valued predictions.
@@ -51,23 +52,6 @@ def linear_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
     """
 
     return X.dot(b.T)
-
-
-def multi_linear_link(X: Array_NxP, B: Array_KxP) -> Array_NxK:
-    """Linear combination of input matrix and coefficient matrix.
-
-    Parameters:
-        X: [ndarray] A (N,P) array of input data.
-        B: [ndarray] A (K,P) array of coefficients.
-
-    Returns:
-        [ndarray] A (N,K) array of continuous valued predictions.
-
-    Raises:
-        None.
-    """
-
-    return X.dot(B.T)
 
 
 def sigmoid_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
@@ -91,12 +75,12 @@ def sigmoid_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
     return np.clip(y_hat, EPS, 1-EPS)
 
 
-def softmax_link(X: Array_NxP, B: Array_KxP) -> Array_NxK:
+def softmax_link(X: Array_NxP, b: Array_KxP) -> Array_NxK:
     """Softmax function applied to linear combination of input matrix and coefficient matrix.
 
     Parameters:
         X: [ndarray] A (N,P) array of input data.
-        B: [ndarray] A (K,P) array of coefficients.
+        b: [ndarray] A (K,P) array of coefficients.
 
     Returns:
         [ndarray] A (N,K) array of probabilisitc predictions.
@@ -107,6 +91,6 @@ def softmax_link(X: Array_NxP, B: Array_KxP) -> Array_NxK:
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', category=RuntimeWarning)
-        y_hat = np.exp(multi_linear_link(X, B))
+        y_hat = np.exp(linear_link(X, b))
 
     return y_hat / y_hat.sum(1).reshape(-1,1)
