@@ -38,7 +38,7 @@ def link_fn_multioutput_reshape(outputs: int) -> LinkFunction:
 
 
 def linear_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Array_Nx1:
-    """Linear combination of input matrix and coefficient vector.
+    """Linear combination of input matrix and coefficient vector/matrix.
 
     Parameters:
         X: [ndarray] A (N,P) array of input data.
