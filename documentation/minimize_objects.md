@@ -251,9 +251,9 @@ get_reg_fn()
 ```
  - Returns penalty/regularization function used by the estimator. In training, the penalty function is combined with the loss function and is multiplied by the strength parameter alpha.
 ```
-partial_fit(X, y, sample_weight=None, **kwargs)
+partial_fit(X, y, sample_weight=None, classes=None, **kwargs)
 ```
- - Perform one training pass on the data. X should be a NxP array of observation data. y should be a NxK array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations.
+ - Perform one training pass on the data. X should be a NxP array of observation data. y should be a NxK array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations. classes should be a tuple of known class/target values in y.
 ```
 fit(X, y, sample_weights=None)
 ```
