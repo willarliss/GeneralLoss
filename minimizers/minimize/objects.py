@@ -135,7 +135,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         coef_1 = result.x
         if self._multi_output:
-            coef_1 = coef.reshape(self.n_outputs_, self.n_inputs_)
+            coef_1 = coef_1.reshape(self.n_outputs_, self.n_inputs_)
 
         return coef_1
 
@@ -185,7 +185,8 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return penalty
 
-    def partial_fit(self, X: Array_NxP, y: Array_NxK, sample_weight: Array_Nx1 = None, **kwargs):
+    def partial_fit(self, X: Array_NxP, y: Union[Array_NxK, Array_Nx1],
+                    sample_weight: Array_Nx1 = None, **kwargs):
 
         if not hasattr(self, 'coef_'):
             X, y = self._validate_data(X, y, reset=True)
@@ -196,14 +197,14 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         self.coef_ = self._partial_fit(
             X=X,
             y=y,
-            coef=self.coef_.copy(),
+            coef_0=self.coef_.copy(),
             sample_weight=sample_weight,
             n_iter=1,
         )
 
         return self
 
-    def fit(self, X: Array_NxP, y: Array_NxK, sample_weight: Array_Nx1 = None):
+    def fit(self, X: Array_NxP, y: Union[Array_NxK, Array_Nx1], sample_weight: Array_Nx1 = None):
 
         X, y = self._validate_data(X, y, reset=True)
         self.coef_ = self._init_params()
@@ -211,14 +212,14 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         self.coef_ = self._partial_fit(
             X=X,
             y=y,
-            coef=self.coef_.copy(),
+            coef_0=self.coef_.copy(),
             sample_weight=sample_weight,
             n_iter=self.max_iter,
         )
 
         return self
 
-    def decision_function(self, X: Array_NxP) -> Array_NxK:
+    def decision_function(self, X: Array_NxP) -> Union[Array_NxK, Array_Nx1]:
 
         if not hasattr(self, 'coef_'):
             raise NotFittedError(
@@ -231,7 +232,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return link_function(X, self.coef_)
 
-    def predict(self, X: Array_NxP) -> Array_NxK:
+    def predict(self, X: Array_NxP) -> Union[Array_NxK, Array_Nx1]:
 
         return self.decision_function(X)
 
@@ -363,7 +364,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         self.coef_ = self._partial_fit(
             X=X,
             y=y,
-            coef=self.coef_.copy(),
+            coef_0=self.coef_.copy(),
             sample_weight=sample_weight,
             n_iter=1,
         )
@@ -382,7 +383,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         self.coef_ = self._partial_fit(
             X=X,
             y=y,
-            coef=self.coef_.copy(),
+            coef_0=self.coef_.copy(),
             sample_weight=sample_weight,
             n_iter=self.max_iter,
         )
