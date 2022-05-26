@@ -130,11 +130,18 @@ class OneHotLabelEncoder(OneHotEncoder):
 
     def _validate_data(self, *args, **kwargs):
 
+        kwargs.update(dict(ensure_2d=False))
         out = super().validate_data(*args, **kwargs)
 
         if out.ndim == 1:
             return out.reshape(-1,1)
         return out
+
+    def fit(self, *args, **kwargs):
+        """Does nothing, categories are already known.
+        """
+
+        raise NotImplemented
 
 
 class FilterCheckArgs:
