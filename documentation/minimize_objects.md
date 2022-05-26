@@ -85,9 +85,13 @@ fit(X, y, sample_weights=None)
 ```
  - Perform training on the data until convergence (or max_iter is reached). X should be a NxP array of observation data. y should be a Nx1 array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations.
 ```
-predict(X)
+decision_function(X)
 ```
  - Use the link function to make predictions on the input data. X should be a NxP array of input/observation data.
+ ```
+ predict(X)
+ ```
+  - Wrapper around decision function.
 
 ___
 # `CustomLossRegressor`
@@ -168,9 +172,13 @@ fit(X, y, sample_weights=None)
 ```
  - Perform training on the data until convergence (or max_iter is reached). X should be a NxP array of observation data. y should be a NxK array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations.
 ```
-predict(X)
+decision_function(X)
 ```
  - Use the link function to make predictions on the input data. X should be a NxP array of input/observation data.
+ ```
+ predict(X)
+ ```
+  - Wrapper around decision function. Flattens array if single output.
 
 ___
 # `CustomLossClassifier`
@@ -251,6 +259,10 @@ fit(X, y, sample_weights=None)
 ```
  - Perform training on the data until convergence (or max_iter is reached). X should be a NxP array of observation data. y should be a NxK array of training targets. sample_weight should be a Nx1 array of weights applied to individual samples/observations.
 ```
-predict(X)
+decision_function(X)
 ```
  - Use the link function to make predictions on the input data. X should be a NxP array of input/observation data.
+ ```
+ predict(X)
+ ```
+  - Wrapper around decision function. Returns predicted class.

@@ -137,6 +137,12 @@ class OneHotLabelEncoder(OneHotEncoder):
             return out.reshape(-1,1)
         return out
 
+    def fit(self, *args, **kwargs):
+        """Does nothing, categories are already known.
+        """
+
+        raise NotImplemented
+
 
 class FilterCheckArgs:
     """Functionality for filtering out appropriate `check_params` passed to
