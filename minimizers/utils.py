@@ -128,14 +128,6 @@ class OneHotLabelEncoder(OneHotEncoder):
         self.infrequent_categories_ = None
         self.feature_names_in_ = None
 
-    def _validate_data(self, *args, **kwargs):
-
-        out = super().validate_data(*args, **kwargs)
-
-        if out.ndim == 1:
-            return out.reshape(-1,1)
-        return out
-
 
 class FilterCheckArgs:
     """Functionality for filtering out appropriate `check_params` passed to

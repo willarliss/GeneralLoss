@@ -6,6 +6,7 @@ from functools import partial
 
 import numpy as np
 from sklearn.exceptions import NotFittedError
+from sklearn.base import RegressorMixin, ClassifierMixin
 
 from .base import BaseEstimatorABC
 from ..penalties import penalty_functions
@@ -124,29 +125,37 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
     def get_loss_fn(self) -> LossFunction:
 
-        if (self.loss_fn is None) and (self._estimator_type == 'classifier'):
-            return bce_loss
+        if callable(self.loss_fn):
+            return self.loss_fn
 
-        if (self.loss_fn is None) and (self._estimator_type == 'regressor'):
-            return mse_loss
+        if self.loss_fn is None:
+            if self._estimator_type=='classifier' and self._multi_output:
+                return cce_loss
+            if self._estimator_type=='classifier' and not self._multi_output:
+                return bce_loss
+            if self._estimator_type=='regressor' and self._multi_output:
+                return multi_mse_loss
+            if self._estimator_type=='regressor' and not self._multi_output:
+                return mse_loss
 
-        if not callable(self.loss_fn):
-            raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
-
-        return self.loss_fn
+        raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
 
     def get_link_fn(self) -> LinkFunction:
 
-        if (self.link_fn is None) and (self._estimator_type == 'classifier'):
-            return sigmoid_link
+        if callable(self.link_fn):
+            return self.link_fn
 
-        if (self.link_fn is None) and (self._estimator_type == 'regressor'):
-            return linear_link
+        if self.link_fn is None:
+            if self._estimator_type=='classifier' and self._multi_output:
+                return softmax_link
+            if self._estimator_type=='classifier' and not self._multi_output:
+                return sigmoid_link
+            if self._estimator_type=='regressor' and self._multi_output:
+                return multi_linear_link
+            if self._estimator_type=='regressor' and not self._multi_output:
+                return linear_link
 
-        if not callable(self.link_fn):
-            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
-
-        return self.link_fn
+        raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
 
     def get_reg_fn(self) -> PenaltyFunction:
 
@@ -194,7 +203,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return self
 
-    def predict(self, X: Array_NxP) -> Array_NxK:
+    def decision_function(self, X: Array_NxP) -> Array_NxK:
 
         if not hasattr(self, 'coef_'):
             raise NotFittedError(
@@ -207,8 +216,12 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         return link_function(X, self.coef_)
 
+    def predict(self, X: Array_NxP) -> Array_NxK:
 
-class CustomLossRegressor(GeneralLossMinimizer):
+        return self.decision_function(X)
+
+
+class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
 
     def __init__(self, *,
                  loss_fn: LossFunction = None,
@@ -259,32 +272,25 @@ class CustomLossRegressor(GeneralLossMinimizer):
 
         return super().set_estimator_type('regressor')
 
-    def get_loss_fn(self) -> LossFunction:
-
-        if self.loss_fn is None:
-            return multi_mse_loss
-
-        if not callable(self.loss_fn):
-            raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
-
-        return self.loss_fn
-
     def get_link_fn(self, wrap: bool = True) -> LinkFunction:
 
-        if self.link_fn is None:
-            link = multi_linear_link
-        elif not callable(self.link_fn):
-            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
-        else:
-            link = self.link_fn
+        func = super().get_link_fn()
 
         if wrap:
-            return link_fn_multioutput_reshape(self.n_outputs_)(link)
+            return link_fn_multioutput_reshape(self.n_outputs_)(func)
 
-        return link
+        return func
+
+    def predict(self, X: Array_NxP) -> Array_NxK:
+
+        y_hat = super().predict(X)
+
+        if y_hat.shape[1] == 1:
+            return y_hat.flatten()
+        return y_hat
 
 
-class CustomLossClassifier(GeneralLossMinimizer):
+class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
 
     def __init__(self, *,
                  loss_fn: LossFunction = None,
@@ -335,29 +341,14 @@ class CustomLossClassifier(GeneralLossMinimizer):
 
         return super().set_estimator_type('classifier')
 
-    def get_loss_fn(self) -> LossFunction:
-
-        if self.loss_fn is None:
-            return cce_loss
-
-        if not callable(self.loss_fn):
-            raise ValueError(f'Loss function must be a callable object. Not {self.loss_fn}')
-
-        return self.loss_fn
-
     def get_link_fn(self, wrap: bool = True) -> LinkFunction:
 
-        if self.link_fn is None:
-            link = softmax_link
-        elif not callable(self.link_fn):
-            raise ValueError(f'Link function must be a callable object. Not {self.link_fn}')
-        else:
-            link = self.link_fn
+        func = super().get_link_fn()
 
         if wrap:
-            return link_fn_multioutput_reshape(self.le_.n_classes_)(link)
+            return link_fn_multioutput_reshape(self.n_outputs_)(func)
 
-        return link
+        return func
 
     def partial_fit(self, X: Array_NxP, y: Array_NxK,
                     sample_weight: Array_Nx1 = None, classes: tuple = None):
@@ -406,3 +397,14 @@ class CustomLossClassifier(GeneralLossMinimizer):
         self.coef_ = result.x
 
         return self
+
+    def predict(self, X: Array_NxP) -> Array_NxK:
+
+        y_hat = super().predict(X)
+        y_hat = self.le_.inverse_transform(
+            np.where(y_hat.max(1).reshape(-1,1)==y_hat, 1, 0)
+        )
+
+        if y_hat.shape[1] == 1:
+            return y_hat.flatten()
+        return y_hat
