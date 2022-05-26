@@ -141,7 +141,7 @@ class OneHotLabelEncoder(OneHotEncoder):
         """Does nothing, categories are already known.
         """
 
-        raise NotImplemented
+        return NotImplemented
 
 
 class FilterCheckArgs:

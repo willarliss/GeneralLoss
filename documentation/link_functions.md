@@ -22,7 +22,7 @@ Linear combination of input matrix and coefficient matrix: <br>
 $ \hat{Y}_i = X_i B $
 ### Parameters
  - X: A (N,P) array of input data.
- - B: A (P,N) array of coefficients.
+ - B: A (K,P) array of coefficients.
 ### Returns
  - A (N,K) array of continuous valued predictions.
 
@@ -50,6 +50,6 @@ Softmax function applied to linear combination of input matrix and coefficient m
 $ \hat{P}_i = \frac{e^{X_i B}}{\sum{e^{X_i B}}} $
 ### Parameters
  - X: A (N,P) array of input data.
- - B: A (P,N) array of coefficients.
+ - B: A (K,P) array of coefficients.
 ### Returns
  - A (N,K) array of probabilisitc predictions.
