@@ -29,9 +29,11 @@ def link_fn_multioutput_reshape(outputs: int) -> LinkFunction:
     outputs = int(outputs)
 
     def wrapper(link_fn):
+
         @wraps(link_fn)
         def link_fn_wrapped(X, B):
             return link_fn(X, B.reshape(outputs, X.shape[1]))
+
         return link_fn_wrapped
 
     return wrapper

@@ -1,7 +1,7 @@
 __pycache__/
 .ipynb_checkpoints/
 *.ipynb
-!demo.ipynb
+!/examples/*.ipynb
 /dist/
 /*.egg-info/
 /build/
