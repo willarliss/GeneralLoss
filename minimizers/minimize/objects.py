@@ -269,7 +269,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         Parameters:
             X: [ndarray] A (N,P) array of observation data.
             y: [ndarray] A (N,1) or (N,) array of training targets.
-            sample_weight: [ndarray]A (N,1) or (N,) array of weights to be applied to individual
+            sample_weight: [ndarray] A (N,1) or (N,) array of weights to be applied to individual
                 samples/observations.
 
         Returns:
@@ -301,7 +301,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         Parameters:
             X: [ndarray] A (N,P) array of observation data.
             y: [ndarray] A (N,1) or (N,) array of training targets.
-            sample_weight: [ndarray]A (N,1) or (N,) array of weights to be applied to individual
+            sample_weight: [ndarray] A (N,1) or (N,) array of weights to be applied to individual
                 samples/observations.
 
         Returns:
@@ -629,7 +629,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         Parameters:
             X: [ndarray] A (N,P) array of observation data.
             y: [ndarray] A (N,1) or (N,) array of training targets.
-            sample_weight: [ndarray]A (N,1) or (N,) array of weights to be applied to individual
+            sample_weight: [ndarray] A (N,1) or (N,) array of weights to be applied to individual
                 samples/observations.
             classes: [tuple] Known classes/targets in the training data.
 
@@ -666,7 +666,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         Parameters:
             X: [ndarray] A (N,P) array of observation data.
             y: [ndarray] A (N,1) or (N,) array of training targets.
-            sample_weight: [ndarray]A (N,1) or (N,) array of weights to be applied to individual
+            sample_weight: [ndarray] A (N,1) or (N,) array of weights to be applied to individual
                 samples/observations.
 
         Returns:
