@@ -138,3 +138,74 @@ def check_weights(w: Array_Nx1, y: Array_Nx1) -> Array_Nx1:
         raise ValueError('Weights must be positive and have the same length as the input data')
 
     return w
+
+
+def clip_probability(array):
+    """Remove infinite and NaN values and clip values arbitrarily close to 0 and 1.
+
+    Parameters:
+        array: [ndarray] Array to clip.
+
+    Returns:
+        [ndarray] Clipped array.
+
+    Raises:
+        None.
+    """
+
+    array = np.nan_to_num(array, copy=True, nan=0.5)
+    array = np.clip(array, a_min=EPS, a_max=1-EPS)
+
+    return array
+
+
+def check_loss_inputs(target, prediction,
+                      expected_targets=None,
+                      multi_output=False,
+                      order='C',
+                      allow_nd=False,
+                      clip_probas=False):
+    """Validate target and prediction inputs for loss functions.
+
+    Parameters:
+        targets: [ndarray] Array of targets.
+        predictions: [ndarray] Array of predictions.
+        expected_targets: [set] Expected target values for classification.
+        multi_output: [bool] Whether output is multi-dimmensional.
+        order: [str] Whether an array will be forced to be fortran or c-style.
+        allow_nd: [bool] Whether to allow array.ndim > 2.
+        clip_probas: [bool] Clip probabilistic predictions arbitrarily close to 0 and 1.
+
+    Returns:
+        [ndarray] Array of obvservation weights.
+
+    Raises:
+        ValueError if weights are not all positive and do not match input data length.
+    """
+
+    target = check_array(target, ensure_2d=False, allow_nd=allow_nd, order=order)
+    prediction = check_array(prediction, ensure_2d=False, allow_nd=allow_nd, order=order)
+
+    if multi_output and target.ndim==1:
+        target = target.reshape(-1,1)
+    if multi_output and prediction.ndim==1:
+        prediction = prediction.reshape(-1,1)
+    if not multi_output:
+        target = target.flatten()
+        prediction = prediction.flatten()
+
+    if clip_probas:
+        prediction = clip_probability(prediction)
+
+    if not target.shape == prediction.shape:
+        raise ValueError
+
+    if expected_targets is None:
+        return target, prediction
+
+    # Values in targets not in expected target values
+    difference = set(np.unique(target)) - set(expected_targets)
+    if len(difference) > 0:
+        raise ValueError
+
+    return target, prediction

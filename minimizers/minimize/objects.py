@@ -16,6 +16,8 @@ from ..typing import (
     Array_NxP,
     Array_Nx1,
     Array_NxK,
+    Array_1xP,
+    Array_KxP,
     LossFunction,
     LinkFunction,
     PenaltyFunction,
@@ -126,17 +128,6 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         if self.max_iter <= 0:
             raise ValueError(f'`max_iter` must be greater than 0. Not {self.max_iter}')
 
-    def _init_params(self):
-
-        rng = np.random.default_rng(self.random_state)
-
-        if self._multi_output:
-            shape = (self.n_outputs_, self.n_inputs_)
-        else:
-            shape = self.n_inputs_
-
-        return rng.normal(size=shape)
-
     def _define_loss_fn(self, X, y, weights):
 
         link_function = self.get_link_fn()
@@ -181,6 +172,32 @@ class GeneralLossMinimizer(BaseEstimatorABC):
             coef_1 = coef_1.reshape(self.n_outputs_, self.n_inputs_)
 
         return coef_1
+
+    def initialize_coef(self, coef: Union[Array_1xP, Array_KxP] = None):
+        """Initialize coefficient array. If nothing is passed, coefficients are initialized
+        normally according to number of inputs and number of outputs.
+
+        Parameters:
+            coef: [ndarray] Initial coefficients for estimator.
+
+        Returns:
+            [self] Instance of GeneralLossMinimizer.
+
+        Raises:
+            None.
+        """
+
+        if coef is not None:
+            self.coef_ = coef
+
+        else:
+            rng = np.random.default_rng(self.random_state)
+            if self._multi_output:
+                self.coef_ = rng.normal(size=(self.n_outputs_, self.n_inputs_))
+            else:
+                self.coef_ = rng.normal(size=self.n_inputs_)
+
+        return self
 
     def get_loss_fn(self) -> LossFunction:
         """Returns loss function used by the estimator. In training, the loss function is combined
@@ -281,7 +298,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         if not hasattr(self, 'coef_'):
             X, y = self._validate_data(X, y, reset=True)
-            self.coef_ = self._init_params()
+            self.initialize_coef()
         else:
             X, y = self._validate_data(X, y, reset=False)
 
@@ -312,7 +329,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         """
 
         X, y = self._validate_data(X, y, reset=True)
-        self.coef_ = self._init_params()
+        self.initialize_coef()
 
         self.coef_ = self._partial_fit(
             X=X,
@@ -646,7 +663,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
                 raise ValueError('classes must be passed on the first call to `partial_fit`')
             self.le_ = OneHotLabelEncoder(classes)
             self.n_outputs_ = self.le_.n_classes_
-            self.coef_ = self._init_params()
+            self.initialize_coef()
         else:
             X, y = self._validate_data(X, y, reset=False)
 
@@ -679,7 +696,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         X, y = self._validate_data(X, y, reset=True)
         self.le_ = OneHotLabelEncoder(np.unique(y))
         self.n_outputs_ = self.le_.n_classes_
-        self.coef_ = self._init_params()
+        self.initialize_coef()
 
         self.coef_ = self._partial_fit(
             X=X,

@@ -7,7 +7,7 @@ minimizers.penalties.zero_penalty(b)
 No penalty. Defined for API consistency.
 ### Parameters
  - b: A (1,P) or (P,) or (K,P) array of coefficients.
- ### Returns
+### Returns
  - The value 0.
 
 ___
@@ -19,7 +19,7 @@ minimizers.penalties.l1_penalty(b)
 L1-norm penalty.
 ### Parameters
  - b: A (1,P) or (P,) or (K,P) array of coefficients.
- ### Returns
+### Returns
  - A single float of the computed penalty.
 
 ___
@@ -31,7 +31,7 @@ minimizers.penalties.zero_penalty(b)
 L2-norm penalty.
 ### Parameters
  - b: A (1,P) or (P,) or (K,P) array of coefficients.
- ### Returns
+### Returns
  - A single float of the computed penalty.
 
 ___
@@ -44,5 +44,5 @@ Elastic-net penalty.
 ### Parameters
  - b: A (1,P) or (P,) or (K,P) array of coefficients.
  - gamma: Elastic-net mixing parameter. Must be between 0 and 1 (inclusive). l1_ratio=0 corresponds to L2-penalty and l1_ratio=1 corresponds to L1-penalty.
- ### Returns
+### Returns
  - A single float of the computed penalty.

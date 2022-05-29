@@ -83,6 +83,10 @@ get_reg_fn()
 ```
  - Returns penalty/regularization function used by the estimator. In training, the penalty function is combined with the loss function and is multiplied by the strength parameter alpha.
 ```
+initialize_coef(coef)
+```
+ - Initialize coefficient array. If nothing is passed, coefficients are initialized normally according to number of inputs and number of outputs.
+```
 partial_fit(X, y, sample_weight=None, **kwargs)
 ```
  - Perform one training pass on the data. X should be a (N,P) array of observation data. y should be a (N,1) or (N,) array of training targets. sample_weight should be a (N,1) or (N,) array of weights to be applied to individual samples/observations.
@@ -175,6 +179,10 @@ get_link_fn(wrap=True)
 get_reg_fn()
 ```
  - Returns penalty/regularization function used by the estimator. In training, the penalty function is combined with the loss function and is multiplied by the strength parameter alpha.
+```
+initialize_coef(coef)
+```
+ - Initialize coefficient array. If nothing is passed, coefficients are initialized normally according to number of inputs and number of outputs.
 ```
 partial_fit(X, y, sample_weight=None, **kwargs)
 ```
@@ -270,6 +278,10 @@ get_link_fn(wrap=True)
 get_reg_fn()
 ```
  - Returns penalty/regularization function used by the estimator. In training, the penalty function is combined with the loss function and is multiplied by the strength parameter alpha.
+```
+initialize_coef(coef)
+```
+ - Initialize coefficient array. If nothing is passed, coefficients are initialized normally according to number of inputs and number of outputs.
 ```
 partial_fit(X, y, sample_weight=None, **kwargs)
 ```
