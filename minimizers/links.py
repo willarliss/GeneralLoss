@@ -6,7 +6,7 @@ from functools import wraps
 
 import numpy as np
 
-from .utils import EPS
+from .utils import clip_probability, EPS
 from .typing import Array_NxP, Array_1xP, Array_KxP, Array_Nx1, Array_NxK, LinkFunction
 
 
@@ -39,7 +39,7 @@ def link_fn_multioutput_reshape(outputs: int) -> LinkFunction:
     return wrapper
 
 
-def linear_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Array_Nx1:
+def linear_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Union[Array_Nx1, Array_NxK]:
     """Linear combination of input matrix and coefficient vector/matrix.
 
     Parameters:
@@ -74,7 +74,7 @@ def sigmoid_link(X: Array_NxP, b: Array_1xP) -> Array_Nx1:
         warnings.simplefilter('ignore', category=RuntimeWarning)
         y_hat = 1 / (1+np.exp(-linear_link(X, b)))
 
-    return np.clip(y_hat, EPS, 1-EPS)
+    return clip_probability(y_hat)
 
 
 def softmax_link(X: Array_NxP, b: Array_KxP) -> Array_NxK:
@@ -93,6 +93,47 @@ def softmax_link(X: Array_NxP, b: Array_KxP) -> Array_NxK:
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', category=RuntimeWarning)
-        y_hat = np.exp(linear_link(X, b))
+        Y_hat = np.exp(linear_link(X, b))
 
-    return y_hat / y_hat.sum(1).reshape(-1,1)
+    Y_hat = Y_hat / Y_hat.sum(1).reshape(-1,1)
+
+    return clip_probability(Y_hat)
+
+
+def log_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Union[Array_Nx1, Array_NxK]:
+    """Log-link function applied to linear combination of input matrix and
+    coefficient vector/matrix.
+
+    Parameters:
+        X: [ndarray] A (N,P) array of input data.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
+
+    Returns:
+        [ndarray] A (N,) or (N,K) array of continuous valued predictions.
+
+    Raises:
+        None.
+    """
+
+    return np.exp(linear_link(X, b))
+
+
+def inverse_link(X: Array_NxP, b: Union[Array_1xP, Array_KxP]) -> Union[Array_Nx1, Array_NxK]:
+    """Inverse-link function applied to linear combination of input matrix and
+    coefficient vector/matrix.
+
+    Parameters:
+        X: [ndarray] A (N,P) array of input data.
+        b: [ndarray] A (1,P) or (P,) or (K,P) array of coefficients.
+
+    Returns:
+        [ndarray] A (N,) or (N,K) array of continuous valued predictions.
+
+    Raises:
+        None.
+    """
+
+    pred = linear_link(X, b)
+    pred[pred==0] += EPS
+
+    return 1 / pred
