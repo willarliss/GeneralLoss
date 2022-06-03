@@ -26,6 +26,8 @@ This class is a general minimizer for custom-defined loss functions. Users can s
    - Verbosity level. Value other than zero will print convergence messages from minimizer.
  - fit_intercept: bool, default=True
    - Whether an intercept term should be fit in training. It True, a column of ones is concatenated to input data matrix.
+ - warm_start: bool, default=False
+   - When True, use previous solution as initial guess or use manually defined initial guess (initialize_coef). Otherwise, erase the previous solution.
  - random_state: int, default=None
    - Seed for randomly initializing coefficients.
  - options: dict, default=None
@@ -133,6 +135,8 @@ This class is a minimizer for custom-defined regression loss functions. Users ca
    - Whether an intercept term should be fit in training. It True, a column of ones is concatenated to input data matrix.
  - random_state: int, default=None
    - Seed for randomly initializing coefficients.
+ - warm_start: bool, default=False
+   - When True, use previous solution as initial guess or use manually defined initial guess (initialize_coef). Otherwise, erase the previous solution.
  - options: dict, default=None
    - A dictionary of options to pass to solver. 'maxiter' and 'disp' are already included.
 ### Attributes
@@ -230,6 +234,8 @@ This class is a minimizer for custom-defined classification loss functions. User
    - Whether an intercept term should be fit in training. It True, a column of ones is concatenated to input data matrix.
  - random_state: int, default=None
    - Seed for randomly initializing coefficients.
+ - warm_start: bool, default=False
+   - When True, use previous solution as initial guess or use manually defined initial guess (initialize_coef). Otherwise, erase the previous solution.
  - options: dict, default=None
    - A dictionary of options to pass to solver. 'maxiter' and 'disp' are already included.
 ### Attributes
