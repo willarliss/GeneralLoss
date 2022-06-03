@@ -5,11 +5,11 @@ from typing import Union
 from functools import partial
 
 import numpy as np
-from scipy import optimize
 from sklearn.exceptions import NotFittedError
 from sklearn.base import RegressorMixin, ClassifierMixin
 
 from .base import BaseEstimatorABC
+from ..utils import OneHotLabelEncoder
 from ..penalties import penalty_functions
 from ..losses import mse_loss, bce_loss, cce_loss, multi_mse_loss
 from ..typing import (
@@ -27,12 +27,6 @@ from ..links import (
     sigmoid_link,
     softmax_link,
     link_fn_multioutput_reshape,
-)
-from ..utils import (
-    EPS,
-    METHODS,
-    check_weights,
-    OneHotLabelEncoder,
 )
 
 
@@ -74,6 +68,8 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         fit_intercept: [bool] Whether an intercept term should be fit in training. It True, a
             column of ones is concatenated to input data matrix.
         random_state: [int] Seed for randomly initializing coefficients.
+        warm_start: [bool] When True, use previous solution as initial guess or use manually
+            defined initial guess (`initialize_coef`). Otherwise, erase the previous solution.
         options: [dict] A dictionary of options to pass to solver. 'maxiter' and 'disp' are
             already included.
 
@@ -100,6 +96,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
                  verbose: int = 0,
                  fit_intercept: bool = True,
                  random_state: int = None,
+                 warm_start: bool = False,
                  options: dict = None):
 
         super().__init__()
@@ -115,6 +112,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         self.verbose = verbose
         self.fit_intercept = fit_intercept
         self.random_state = random_state
+        self.warm_start = warm_start
         self.options = options
 
         self.set_multi_output(False)
@@ -127,51 +125,6 @@ class GeneralLossMinimizer(BaseEstimatorABC):
             raise ValueError(f'`tol` must be greater than or equal to 0. Not {self.tol}')
         if self.max_iter <= 0:
             raise ValueError(f'`max_iter` must be greater than 0. Not {self.max_iter}')
-
-    def _define_loss_fn(self, X, y, weights):
-
-        link_function = self.get_link_fn()
-        loss_function = self.get_loss_fn()
-        regularization = self.get_reg_fn()
-        weights = check_weights(weights, y)
-
-        def loss(params):
-            y_hat = link_function(X, params)
-            loss = loss_function(y, y_hat)
-            reg = regularization(params)
-            return loss.dot(weights) + self.alpha*reg
-
-        return loss
-
-    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
-
-        loss_function = self._define_loss_fn(X, y, sample_weight)
-
-        if self.solver.upper() not in METHODS:
-            raise ValueError(f'Unsuported solver: {self.solver}')
-        if self.options is None:
-            options = {}
-        else:
-            options = self.options.copy()
-        options.update({
-            'eps': EPS,
-            'maxiter': n_iter,
-            'disp': self.verbose,
-        })
-
-        result = optimize.minimize(
-            fun=loss_function,
-            x0=coef_0,
-            options=options,
-            method=self.solver,
-            tol=self.tol,
-        )
-
-        coef_1 = result.x
-        if self._multi_output:
-            coef_1 = coef_1.reshape(self.n_outputs_, self.n_inputs_)
-
-        return coef_1
 
     def initialize_coef(self, coef: Union[Array_1xP, Array_KxP] = None):
         """Initialize coefficient array. If nothing is passed, coefficients are initialized
@@ -296,7 +249,11 @@ class GeneralLossMinimizer(BaseEstimatorABC):
             None.
         """
 
-        if not hasattr(self, 'coef_'):
+        if self.warm_start:
+            if not hasattr(self, 'coef_'):
+                raise ValueError
+            X, y = self._validate_data(X, y, reset=True)
+        elif not hasattr(self, 'coef_') and not self.warm_start:
             X, y = self._validate_data(X, y, reset=True)
             self.initialize_coef()
         else:
@@ -328,8 +285,13 @@ class GeneralLossMinimizer(BaseEstimatorABC):
             None.
         """
 
-        X, y = self._validate_data(X, y, reset=True)
-        self.initialize_coef()
+        if self.warm_start:
+            if not hasattr(self, 'coef_'):
+                raise ValueError
+            X, y = self._validate_data(X, y, reset=True)
+        else:
+            X, y = self._validate_data(X, y, reset=True)
+            self.initialize_coef()
 
         self.coef_ = self._partial_fit(
             X=X,
@@ -414,6 +376,8 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
         fit_intercept: [bool] Whether an intercept term should be fit in training. It True, a
             column of ones is concatenated to input data matrix.
         random_state: [int] Seed for randomly initializing coefficients.
+        warm_start: [bool] When True, use previous solution as initial guess or use manually
+            defined initial guess (`initialize_coef`). Otherwise, erase the previous solution.
         options: [dict] A dictionary of options to pass to solver. 'maxiter' and 'disp' are
             already included.
 
@@ -440,6 +404,7 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
                  verbose: int = 0,
                  fit_intercept: bool = True,
                  random_state: int = None,
+                 warm_start: bool = False,
                  options: dict = None):
 
         with warnings.catch_warnings():
@@ -456,6 +421,7 @@ class CustomLossRegressor(RegressorMixin, GeneralLossMinimizer):
                 verbose=verbose,
                 fit_intercept=fit_intercept,
                 random_state=random_state,
+                warm_start=warm_start,
                 options=options,
             )
 
@@ -552,6 +518,8 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
         fit_intercept: [bool] Whether an intercept term should be fit in training. It True, a
             column of ones is concatenated to input data matrix.
         random_state: [int] Seed for randomly initializing coefficients.
+        warm_start: [bool] When True, use previous solution as initial guess or use manually
+            defined initial guess (`initialize_coef`). Otherwise, erase the previous solution.
         options: [dict] A dictionary of options to pass to solver. 'maxiter' and 'disp' are
             already included.
 
@@ -580,6 +548,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
                  verbose: int = 0,
                  fit_intercept: bool = True,
                  random_state: int = None,
+                 warm_start: bool = False,
                  options: dict = None):
 
         with warnings.catch_warnings():
@@ -596,6 +565,7 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
                 verbose=verbose,
                 fit_intercept=fit_intercept,
                 random_state=random_state,
+                warm_start=warm_start,
                 options=options,
             )
 

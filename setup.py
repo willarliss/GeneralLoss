@@ -6,6 +6,8 @@ REQS = './requirements/requirements.txt'
 
 if __name__ == '__main__':
 
+    assert False, "setup.py is malfunctional"
+
     with open(REQS, 'r') as infile:
         requirements = infile.read().split('\n')
 
