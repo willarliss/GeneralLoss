@@ -1,5 +1,5 @@
 """Experimental autoencoder anomaly detection objects and functions"""
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,protected-access
 
 import warnings
 from typing import Union
@@ -9,6 +9,7 @@ import numpy as np
 
 from minimizers.utils import check_loss_inputs
 from minimizers.minimize.objects import CustomLossRegressor
+from minimizers.minimize.base import BaseEstimatorABC
 from minimizers.typing import (
     Array_NxP,
     Array_Nx1,
@@ -95,6 +96,21 @@ class EpsAutoEncoder(CustomLossRegressor):
             )
 
         self.latent_dim = latent_dim
+
+    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
+
+        #coef = super()._partial_fit(X, y, coef_0, sample_weight, n_iter)
+        coef = BaseEstimatorABC._partial_fit(self, X, y, coef_0, sample_weight, n_iter)
+
+        return coef
+
+    def initialize_coef(self):
+
+        rng = np.random.default_rng(self.random_state)
+        size = 2*(self.n_inputs_*self.latent_dim)
+        self.coef_ = rng.normal(size=size)
+
+        return self
 
     def encode(self, X: Array_NxP) -> Array_NxP:
 
