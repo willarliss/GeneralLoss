@@ -126,6 +126,15 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         if self.max_iter <= 0:
             raise ValueError(f'`max_iter` must be greater than 0. Not {self.max_iter}')
 
+    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
+
+        coef = super()._partial_fit(X, y, coef_0, sample_weight, n_iter)
+
+        if self._multi_output:
+            coef = coef.reshape(self.n_outputs_, self.n_inputs_)
+
+        return coef
+
     def initialize_coef(self, coef: Union[Array_1xP, Array_KxP] = None):
         """Initialize coefficient array. If nothing is passed, coefficients are initialized
         normally according to number of inputs and number of outputs.

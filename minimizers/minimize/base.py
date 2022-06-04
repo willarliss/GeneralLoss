@@ -110,11 +110,7 @@ class BaseEstimatorABC(BaseEstimator, ABC):
             tol=self.tol,
         )
 
-        coef_1 = result.x
-        if self._multi_output:
-            coef_1 = coef_1.reshape(self.n_outputs_, self.n_inputs_)
-
-        return coef_1
+        return result.x
 
     def set_estimator_type(self, etype: str):
         """Set type of estimator the instance should be. Can be 'classifier' or 'regressor'.
