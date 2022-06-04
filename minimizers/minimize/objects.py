@@ -251,7 +251,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         if self.warm_start:
             if not hasattr(self, 'coef_'):
-                raise ValueError
+                raise AttributeError('Coefficients must be set if warm_start=True')
             X, y = self._validate_data(X, y, reset=True)
         elif not hasattr(self, 'coef_') and not self.warm_start:
             X, y = self._validate_data(X, y, reset=True)
@@ -287,7 +287,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         if self.warm_start:
             if not hasattr(self, 'coef_'):
-                raise ValueError
+                raise AttributeError('Coefficients must be set if warm_start=True')
             X, y = self._validate_data(X, y, reset=True)
         else:
             X, y = self._validate_data(X, y, reset=True)
@@ -627,7 +627,15 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
             None.
         """
 
-        if not hasattr(self, 'coef_'):
+        if self.warm_start:
+            if not hasattr(self, 'coef_'):
+                raise AttributeError('Coefficients must be set if warm_start=True')
+            X, y = self._validate_data(X, y, reset=True)
+            if classes is None:
+                raise ValueError('classes must be passed on the first call to `partial_fit`')
+            self.le_ = OneHotLabelEncoder(classes)
+            self.n_outputs_ = self.le_.n_classes_
+        elif not hasattr(self, 'coef_') and not self.warm_start:
             X, y = self._validate_data(X, y, reset=True)
             if classes is None:
                 raise ValueError('classes must be passed on the first call to `partial_fit`')
@@ -663,10 +671,17 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
             None.
         """
 
-        X, y = self._validate_data(X, y, reset=True)
-        self.le_ = OneHotLabelEncoder(np.unique(y))
-        self.n_outputs_ = self.le_.n_classes_
-        self.initialize_coef()
+        if self.warm_start:
+            if not hasattr(self, 'coef_'):
+                raise AttributeError('Coefficients must be set if warm_start=True')
+            X, y = self._validate_data(X, y, reset=True)
+            self.le_ = OneHotLabelEncoder(np.unique(y))
+            self.n_outputs_ = self.le_.n_classes_
+        else:
+            X, y = self._validate_data(X, y, reset=True)
+            self.le_ = OneHotLabelEncoder(np.unique(y))
+            self.n_outputs_ = self.le_.n_classes_
+            self.initialize_coef()
 
         self.coef_ = self._partial_fit(
             X=X,
