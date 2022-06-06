@@ -2,8 +2,8 @@
 # pylint: disable=invalid-name,protected-access
 
 import warnings
-from typing import Union
 from functools import partial
+from typing import Union, Callable
 
 import numpy as np
 
@@ -20,7 +20,7 @@ from minimizers.typing import (
 )
 
 
-def activation_func(X: Array_NxP, func: Union[PenaltyFunction, str] = 'linear') -> Array_NxP:
+def activation_func(X: Array_NxP, func: Union[Callable, str] = 'linear') -> Array_NxP:
 
     if callable(func):
         Xa = func(X)
@@ -96,7 +96,7 @@ def encode_decode_(X: Array_NxP, b: Array_1xP,
 class EncoderDecoder(CustomLossRegressor):
 
     def __init__(self, latent_dim: int, *,
-                 activation: Union[PenaltyFunction, str] = 'linear',
+                 activation: Union[Callable, str] = 'linear',
                  penalty: Union[PenaltyFunction, str] = 'none',
                  alpha: float = 0.1,
                  l1_ratio: float = 0.15,
