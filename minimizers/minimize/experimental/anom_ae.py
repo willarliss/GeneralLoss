@@ -146,3 +146,49 @@ class EpsAutoEncoder(CustomLossRegressor):
     def partial_fit(self, X: Array_NxP, sample_weight: Array_Nx1 = None):
 
         return super().partial_fit(X, X, sample_weight=sample_weight)
+
+
+class EncodedDecodedAnomalies:
+
+    def __init__(self, *,
+                 latent_dim: int = 3,
+                 penalty: str = 'l2',
+                 alpha: float = 1e-4,
+                 l1_ratio: float = 0.15,
+                 solver: str = 'bfgs',
+                 tol: float = 0.,
+                 max_iter: int = 1000,
+                 verbose: int = 0,
+                 random_state: int = None,
+                 warm_start: bool = False,
+                 options: dict = None):
+
+        if penalty not in ('l1', 'l2'):
+            raise ValueError
+        if alpha <= 0.:
+            raise ValueError
+        epsilon = np.e
+
+        self.encoder_decoder = EpsAutoEncoder(
+            latent_dim=latent_dim,
+            epsilon=epsilon,
+            alpha=alpha,
+            penalty=penalty,
+            l1_ratio=l1_ratio,
+            solver=solver,
+            tol=tol,
+            max_iter=max_iter,
+            verbose=verbose,
+            random_state=random_state,
+            warm_start=warm_start,
+            options=options,
+        )
+
+    def fit_predict(self, X: Array_NxP, sample_weight: bool = None) -> Array_Nx1:
+
+        self.encoder_decoder.fit(X, sample_weight=sample_weight)
+
+        latent = self.encoder_decoder.encode(X)
+        distr = np.mean(latent(0))
+
+        return ((latent-distr)/distr).mean(1)
