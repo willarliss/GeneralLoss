@@ -20,7 +20,7 @@ from minimizers.typing import (
 )
 
 
-def activation_func(X: Array_NxP, func: Union[Callable, str] = 'linear') -> Array_NxP:
+def encoding_func(X: Array_NxP, func: Union[Callable, str] = 'linear') -> Array_NxP:
 
     if callable(func):
         Xa = func(X)
@@ -35,8 +35,15 @@ def activation_func(X: Array_NxP, func: Union[Callable, str] = 'linear') -> Arra
         Xa = 1 / (1+np.exp(-X))
     elif func == 'inverse':
         Xa = 1 / X
+    elif func == 'batch_norm':
+        Xa = (X - X.mean(0)) / np.sqrt(X.var(0) + 1e-4)
+    elif func == 'batch_l1':
+        Xa = X / np.linalg.norm(X, 1, axis=1).reshape(-1,1)
+    elif func == 'batch_l2':
+        Xa = X / np.linalg.norm(X, 2, axis=1).reshape(-1,1)
     else:
-        raise ValueError(f'Unknown activation function: {func}')
+        raise ValueError(f'Unknown encoding function: {func}')
+
     return Xa
 
 
@@ -48,7 +55,7 @@ def reconstruction_loss(X: Array_NxP, X_hat: Array_NxP) -> Array_Nx1:
 
 
 def encode_(X: Array_NxP, b: Array_1xP, *,
-            latent: int, bias: bool = True, activation: str = 'linear') -> Array_NxK:
+            latent: int, bias: bool = True, encoding: str = 'linear') -> Array_NxK:
 
     if bias:
         b = b.reshape(X.shape[1]+1, latent)
@@ -58,7 +65,7 @@ def encode_(X: Array_NxP, b: Array_1xP, *,
         b = b.reshape(X.shape[1], latent)
         X_enc = X.dot(b[:,:])
 
-    return activation_func(X_enc, func=activation)
+    return encoding_func(X_enc, func=encoding)
 
 
 def decode_(X: Array_NxK, b: Array_1xP, *, size: int, bias: bool = True) -> Array_NxP:
@@ -75,7 +82,7 @@ def decode_(X: Array_NxK, b: Array_1xP, *, size: int, bias: bool = True) -> Arra
 
 
 def encode_decode_(X: Array_NxP, b: Array_1xP,
-                   latent: int = 1, bias: bool = True, activation: str = 'linear') -> Array_NxP:
+                   latent: int = 1, bias: bool = True, encoding: str = 'linear') -> Array_NxP:
 
     size = X.shape[1]
     split = X.shape[1]*latent + int(bias)*latent
@@ -87,7 +94,7 @@ def encode_decode_(X: Array_NxP, b: Array_1xP,
             b=b_enc,
             latent=latent,
             bias=bias,
-            activation=activation,
+            encoding=encoding,
         ),
         b=b_dec,
         size=size,
@@ -98,7 +105,7 @@ def encode_decode_(X: Array_NxP, b: Array_1xP,
 class EncoderDecoder(CustomLossRegressor):
 
     def __init__(self, latent_dim: int, *,
-                 activation: Union[Callable, str] = 'linear',
+                 encoding: Union[Callable, str] = 'linear',
                  penalty: Union[PenaltyFunction, str] = 'none',
                  alpha: float = 0.1,
                  l1_ratio: float = 0.15,
@@ -129,7 +136,7 @@ class EncoderDecoder(CustomLossRegressor):
                 options=options,
             )
 
-        self.activation = activation
+        self.encoding = encoding
         self.bias = fit_intercept
         self.latent_dim = latent_dim
 
@@ -166,7 +173,7 @@ class EncoderDecoder(CustomLossRegressor):
             b=self.coef_[:self._split],
             latent=self.latent_dim,
             bias=self.bias,
-            activation=self.activation,
+            encoding=self.encoding,
         )
 
     def decode(self, Xe: Array_NxP) -> Array_NxP:
@@ -183,7 +190,7 @@ class EncoderDecoder(CustomLossRegressor):
         return partial(encode_decode_,
                        latent=self.latent_dim,
                        bias=self.bias,
-                       activation=self.activation)
+                       encoding=self.encoding)
 
     def fit(self, X: Array_NxP, sample_weight: Array_Nx1 = None):
 
