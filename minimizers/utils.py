@@ -198,7 +198,7 @@ def check_loss_inputs(target, prediction,
         prediction = clip_probability(prediction)
 
     if not target.shape == prediction.shape:
-        raise ValueError
+        raise ValueError('Target shape and prediction shapes do not match')
 
     if expected_targets is None:
         return target, prediction
@@ -206,6 +206,8 @@ def check_loss_inputs(target, prediction,
     # Values in targets not in expected target values
     difference = set(np.unique(target)) - set(expected_targets)
     if len(difference) > 0:
-        raise ValueError
+        raise ValueError(
+            f'{difference} were found in `targets` but not specified in `expected_targets`'
+        )
 
     return target, prediction

@@ -126,6 +126,15 @@ class GeneralLossMinimizer(BaseEstimatorABC):
         if self.max_iter <= 0:
             raise ValueError(f'`max_iter` must be greater than 0. Not {self.max_iter}')
 
+    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
+
+        coef = super()._partial_fit(X, y, coef_0, sample_weight, n_iter)
+
+        if self._multi_output:
+            coef = coef.reshape(self.n_outputs_, self.n_inputs_)
+
+        return coef
+
     def initialize_coef(self, coef: Union[Array_1xP, Array_KxP] = None):
         """Initialize coefficient array. If nothing is passed, coefficients are initialized
         normally according to number of inputs and number of outputs.
@@ -251,7 +260,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         if self.warm_start:
             if not hasattr(self, 'coef_'):
-                raise ValueError
+                raise AttributeError('Coefficients must be set if warm_start=True')
             X, y = self._validate_data(X, y, reset=True)
         elif not hasattr(self, 'coef_') and not self.warm_start:
             X, y = self._validate_data(X, y, reset=True)
@@ -287,7 +296,7 @@ class GeneralLossMinimizer(BaseEstimatorABC):
 
         if self.warm_start:
             if not hasattr(self, 'coef_'):
-                raise ValueError
+                raise AttributeError('Coefficients must be set if warm_start=True')
             X, y = self._validate_data(X, y, reset=True)
         else:
             X, y = self._validate_data(X, y, reset=True)
@@ -627,7 +636,15 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
             None.
         """
 
-        if not hasattr(self, 'coef_'):
+        if self.warm_start:
+            if not hasattr(self, 'coef_'):
+                raise AttributeError('Coefficients must be set if warm_start=True')
+            X, y = self._validate_data(X, y, reset=True)
+            if classes is None:
+                raise ValueError('classes must be passed on the first call to `partial_fit`')
+            self.le_ = OneHotLabelEncoder(classes)
+            self.n_outputs_ = self.le_.n_classes_
+        elif not hasattr(self, 'coef_') and not self.warm_start:
             X, y = self._validate_data(X, y, reset=True)
             if classes is None:
                 raise ValueError('classes must be passed on the first call to `partial_fit`')
@@ -663,10 +680,17 @@ class CustomLossClassifier(ClassifierMixin, GeneralLossMinimizer):
             None.
         """
 
-        X, y = self._validate_data(X, y, reset=True)
-        self.le_ = OneHotLabelEncoder(np.unique(y))
-        self.n_outputs_ = self.le_.n_classes_
-        self.initialize_coef()
+        if self.warm_start:
+            if not hasattr(self, 'coef_'):
+                raise AttributeError('Coefficients must be set if warm_start=True')
+            X, y = self._validate_data(X, y, reset=True)
+            self.le_ = OneHotLabelEncoder(np.unique(y))
+            self.n_outputs_ = self.le_.n_classes_
+        else:
+            X, y = self._validate_data(X, y, reset=True)
+            self.le_ = OneHotLabelEncoder(np.unique(y))
+            self.n_outputs_ = self.le_.n_classes_
+            self.initialize_coef()
 
         self.coef_ = self._partial_fit(
             X=X,

@@ -71,6 +71,47 @@ class BaseEstimatorABC(BaseEstimator, ABC):
 
         return out
 
+    def _define_loss_fn(self, X, y, weights):
+
+        link_function = self.get_link_fn()
+        loss_function = self.get_loss_fn()
+        regularization = self.get_reg_fn()
+        weights = check_weights(weights, y)
+
+        def loss(params):
+            y_hat = link_function(X, params)
+            loss = loss_function(y, y_hat)
+            reg = regularization(params)
+            return loss.dot(weights) + self.alpha*reg
+
+        return loss
+
+    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
+
+        loss_function = self._define_loss_fn(X, y, sample_weight)
+
+        if self.solver.upper() not in METHODS:
+            raise ValueError(f'Unsupported solver: {self.solver}')
+        if self.options is None:
+            options = {}
+        else:
+            options = self.options.copy()
+        options.update({
+            'eps': EPS,
+            'maxiter': n_iter,
+            'disp': self.verbose,
+        })
+
+        result = optimize.minimize(
+            fun=loss_function,
+            x0=coef_0,
+            options=options,
+            method=self.solver,
+            tol=self.tol,
+        )
+
+        return result.x
+
     def set_estimator_type(self, etype: str):
         """Set type of estimator the instance should be. Can be 'classifier' or 'regressor'.
 
@@ -198,48 +239,3 @@ class BaseEstimatorABC(BaseEstimator, ABC):
         """
 
         raise NotImplementedError
-
-    def _define_loss_fn(self, X, y, weights):
-
-        link_function = self.get_link_fn()
-        loss_function = self.get_loss_fn()
-        regularization = self.get_reg_fn()
-        weights = check_weights(weights, y)
-
-        def loss(params):
-            y_hat = link_function(X, params)
-            loss = loss_function(y, y_hat)
-            reg = regularization(params)
-            return loss.dot(weights) + self.alpha*reg
-
-        return loss
-
-    def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
-
-        loss_function = self._define_loss_fn(X, y, sample_weight)
-
-        if self.solver.upper() not in METHODS:
-            raise ValueError(f'Unsupported solver: {self.solver}')
-        if self.options is None:
-            options = {}
-        else:
-            options = self.options.copy()
-        options.update({
-            'eps': EPS,
-            'maxiter': n_iter,
-            'disp': self.verbose,
-        })
-
-        result = optimize.minimize(
-            fun=loss_function,
-            x0=coef_0,
-            options=options,
-            method=self.solver,
-            tol=self.tol,
-        )
-
-        coef_1 = result.x
-        if self._multi_output:
-            coef_1 = coef_1.reshape(self.n_outputs_, self.n_inputs_)
-
-        return coef_1
