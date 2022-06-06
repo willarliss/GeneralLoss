@@ -33,6 +33,8 @@ def activation_func(X: Array_NxP, func: Union[Callable, str] = 'linear') -> Arra
         Xa = np.tanh(X)
     elif func == 'sigmoid':
         Xa = 1 / (1+np.exp(-X))
+    elif func == 'inverse':
+        Xa = 1 / X
     else:
         raise ValueError(f'Unknown activation function: {func}')
     return Xa
