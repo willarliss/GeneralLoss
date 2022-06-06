@@ -148,7 +148,7 @@ class EpsAutoEncoder(CustomLossRegressor):
         return super().partial_fit(X, X, sample_weight=sample_weight)
 
 
-class EncodedDecodedAnomalies:
+class ReconstructionError:
 
     def __init__(self, *,
                  latent_dim: int = 3,
