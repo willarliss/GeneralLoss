@@ -1,4 +1,4 @@
-"""Experimental autoencoder anomaly detection objects and functions"""
+"""Experimental encoder-decoder objects and functions"""
 # pylint: disable=invalid-name,protected-access
 
 import warnings
@@ -20,6 +20,24 @@ from minimizers.typing import (
 )
 
 
+def activation_func(X: Array_NxP, func: Union[PenaltyFunction, str] = 'linear') -> Array_NxP:
+
+    if callable(func):
+        Xa = func(X)
+    elif func == 'linear':
+        Xa = X
+    elif func == 'softmax':
+        Xa = np.exp(X)
+        Xa = Xa / Xa.sum(1).reshape(-1,1)
+    elif func == 'tanh':
+        Xa = np.tanh(X)
+    elif func == 'sigmoid':
+        Xa = 1 / (1+np.exp(-X))
+    else:
+        raise ValueError(f'Unknown activation function: {func}')
+    return Xa
+
+
 def reconstruction_loss(X: Array_NxP, X_hat: Array_NxP) -> Array_Nx1:
 
     X, X_hat = check_loss_inputs(X, X_hat, multi_output=True)
@@ -27,27 +45,38 @@ def reconstruction_loss(X: Array_NxP, X_hat: Array_NxP) -> Array_Nx1:
     return np.linalg.norm(X-X_hat, 2, axis=1)
 
 
-def encode_(X: Array_NxP, b: Array_1xP, *, latent: int, eps: float = np.e) -> Array_NxK:
+def encode_(X: Array_NxP, b: Array_1xP, *,
+            latent: int, bias: bool = True, activation: str = 'linear') -> Array_NxK:
 
-    b = b.reshape(X.shape[1], latent)
+    if bias:
+        b = b.reshape(X.shape[1]+1, latent)
+        X_enc = X.dot(b[1:,:]) + b[0,:]
 
-    X_enc = np.exp(X.dot(b) - eps)
+    else:
+        b = b.reshape(X.shape[1], latent)
+        X_enc = X.dot(b[:,:])
 
-    return X_enc / X_enc.sum(1).reshape(-1,1)
+    return activation_func(X_enc, func=activation)
 
 
-def decode_(X: Array_NxK, b: Array_1xP, *, size: int, eps: float = np.e) -> Array_NxP:
+def decode_(X: Array_NxK, b: Array_1xP, *, size: int, bias: bool = True) -> Array_NxP:
 
-    b = b.reshape(X.shape[1], size)
+    if bias:
+        b = b.reshape(X.shape[1]+1, size)
+        X_dec = X.dot(b[1:,:]) + b[0,:]
 
-    X_dec = X.dot(b) + eps
+    else:
+        b = b.reshape(X.shape[1], size)
+        X_dec = X.dot(b[:,:])
 
     return X_dec
 
 
-def encode_decode_(X: Array_NxP, b: Array_1xP, latent: int = 1, eps: float = np.e) -> Array_NxP:
+def encode_decode_(X: Array_NxP, b: Array_1xP,
+                   latent: int = 1, bias: bool = True, activation: str = 'linear') -> Array_NxP:
 
-    size, split = X.shape[1], b.shape[0]//2
+    size = X.shape[1]
+    split = X.shape[1]*latent + int(bias)*latent
     b_enc, b_dec = b[:split], b[split:]
 
     return decode_(
@@ -55,21 +84,23 @@ def encode_decode_(X: Array_NxP, b: Array_1xP, latent: int = 1, eps: float = np.
             X=X,
             b=b_enc,
             latent=latent,
-            eps=eps,
+            bias=bias,
+            activation=activation,
         ),
         b=b_dec,
         size=size,
-        eps=eps,
+        bias=bias,
     )
 
 
-class EpsAutoEncoder(CustomLossRegressor):
+class EncoderDecoder(CustomLossRegressor):
 
     def __init__(self, latent_dim: int, *,
-                 epsilon: float = np.e,
+                 activation: Union[PenaltyFunction, str] = 'linear',
                  penalty: Union[PenaltyFunction, str] = 'none',
                  alpha: float = 0.1,
                  l1_ratio: float = 0.15,
+                 fit_intercept: bool = True,
                  solver: str = 'bfgs',
                  tol: float = 1e-4,
                  max_iter: int = 1000,
@@ -96,7 +127,8 @@ class EpsAutoEncoder(CustomLossRegressor):
                 options=options,
             )
 
-        self.epsilon = epsilon
+        self.activation = activation
+        self.bias = fit_intercept
         self.latent_dim = latent_dim
 
     def _partial_fit(self, X, y, coef_0, sample_weight, n_iter):
@@ -108,36 +140,48 @@ class EpsAutoEncoder(CustomLossRegressor):
 
     def initialize_coef(self):
 
+        size = sum([
+            2*(self.n_inputs_*self.latent_dim),
+            int(self.bias)*self.latent_dim,
+            int(self.bias)*self.n_inputs_,
+        ])
+
         rng = np.random.default_rng(self.random_state)
-        self.coef_ = rng.normal(size=2*(self.n_inputs_*self.latent_dim))
+
+        self.coef_ = rng.normal(size=size)
+
+        self._split = sum([
+            (self.n_inputs_*self.latent_dim),
+            int(self.bias)*self.latent_dim,
+        ])
 
         return self
 
     def encode(self, X: Array_NxP) -> Array_NxP:
 
-        split = self.coef_.shape[0]//2
-
         return encode_(
             X=X,
-            b=self.coef_[:split],
+            b=self.coef_[:self._split],
             latent=self.latent_dim,
-            eps=self.epsilon,
+            bias=self.bias,
+            activation=self.activation,
         )
 
     def decode(self, Xe: Array_NxP) -> Array_NxP:
 
-        split = self.coef_.shape[0]//2
-
         return decode_(
             X=Xe,
-            b=self.coef_[split:],
+            b=self.coef_[self._split:],
             size=self.n_inputs_,
-            eps=self.epsilon,
+            bias=self.bias,
         )
 
     def get_link_fn(self) -> LinkFunction:
 
-        return partial(encode_decode_, latent=self.latent_dim, eps=self.epsilon)
+        return partial(encode_decode_,
+                       latent=self.latent_dim,
+                       bias=self.bias,
+                       activation=self.activation)
 
     def fit(self, X: Array_NxP, sample_weight: Array_Nx1 = None):
 
