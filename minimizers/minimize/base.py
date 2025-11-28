@@ -110,7 +110,9 @@ class BaseEstimatorABC(BaseEstimator, ABC):
             tol=self.tol,
         )
 
-        return result.x
+        self.last_result_ = result
+
+        return self.last_result_.x
 
     def set_estimator_type(self, etype: str):
         """Set type of estimator the instance should be. Can be 'classifier' or 'regressor'.
